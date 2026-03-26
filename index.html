@@ -692,92 +692,104 @@ var COLLECTION_CQ = "projets_cq_general";
 function isFirebaseAvailable(){ return window.firebaseReady === true && window.db !== null; }
 
 function loadHistory(callback){
-  // Essayer Firebase en premier, sinon localStorage
-  if(isFirebaseAvailable()){
-    var collName = typeof COLLECTION_CHAUD !== "undefined" ? COLLECTION_CHAUD : COLLECTION_CQ;
-    db.collection(collName).orderBy("savedAtStr","desc").limit(100).get()
-      .then(function(snap){
-        var list=[];
-        snap.forEach(function(doc){ var d=doc.data(); d.id=doc.id; list.push(d); });
-        // Trier par date desc
-        list.sort(function(a,b){ return (b.savedAtStr||"").localeCompare(a.savedAtStr||""); });
-        if(callback) callback(list||[]);
-      })
-      .catch(function(e){
-        console.error("Firebase load error:",e);
-        // Fallback localStorage
-        try{ var r=localStorage.getItem(STORAGE_KEY); try{ if(callback) callback(r?JSON.parse(r):[]); }catch(pe){ if(callback) callback([]); } }
-        catch(e2){ if(callback) callback([]); }
-      });
-  } else {
-    // Fallback localStorage
-    try{ var r=localStorage.getItem(STORAGE_KEY); try{ if(callback) callback(r?JSON.parse(r):[]); }catch(pe){ if(callback) callback([]); } }
-    catch(e){ if(callback) callback([]); }
+  var safeCallback = function(list){
+    if(typeof callback === "function") callback(Array.isArray(list) ? list : []);
+  };
+  if(!isFirebaseAvailable()){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      var list = raw ? JSON.parse(raw) : [];
+      if(!Array.isArray(list)) list = [];
+      safeCallback(list);
+    }catch(e){ safeCallback([]); }
+    return;
   }
+  db.collection(COLLECTION_CHAUD)
+    .orderBy("savedAtStr","desc")
+    .limit(100)
+    .get()
+    .then(function(snap){
+      var list = [];
+      snap.forEach(function(doc){
+        var d = doc.data();
+        if(d){ d.id = doc.id; list.push(d); }
+      });
+      safeCallback(list);
+    })
+    .catch(function(e){
+      console.error("Firebase load error:",e);
+      try{
+        var raw = localStorage.getItem(STORAGE_KEY);
+        var list = raw ? JSON.parse(raw) : [];
+        if(!Array.isArray(list)) list = [];
+        safeCallback(list);
+      }catch(e2){ safeCallback([]); }
+    });
 }
-
-
 function saveHistory(list){
   // Not used with Firebase — saves are done per-document
 }
 
-function saveCurrentProject(callback){
+function saveCurrentProject(onDone){
   try{
-    if(!S.projNom) return;
+    if(!S.projNom) { if(onDone) onDone(); return; }
     var config = {};
-    Object.keys(S).forEach(function(k){ config[k] = S[k]; });
+    Object.keys(S).forEach(function(k){
+      try{ config[k] = JSON.parse(JSON.stringify(S[k])); } catch(e){ config[k] = S[k]; }
+    });
     var projet = {
-      savedAt: firebase.firestore.Timestamp.now(),
       savedAtStr: new Date().toLocaleDateString("fr-FR"),
-      nom: S.projNom,
-      edite: S.projEdite,
-      controle: S.projControle,
-      rev: S.projRev,
+      nom: S.projNom||"", edite: S.projEdite||"",
+      controle: S.projControle||"", rev: S.projRev||"",
       config: config
     };
 
-    if(!isFirebaseAvailable()){
-      // Fallback to localStorage
-      try{
-        var list = JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]");
-        var found = false;
-        for(var i=0;i<list.length;i++){
-          if(list[i].nom===projet.nom && list[i].rev===projet.rev){
-            list[i] = Object.assign({}, projet, {id: list[i].id, savedAt: new Date().toLocaleDateString("fr-FR")});
-            found = true; break;
-          }
+    // 1. Toujours sauvegarder en localStorage
+    try{
+      var localList = JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]");
+      if(!Array.isArray(localList)) localList = [];
+      var found = false;
+      for(var i=0;i<localList.length;i++){
+        if(localList[i] && localList[i].nom===projet.nom && localList[i].rev===projet.rev){
+          localList[i] = Object.assign({},projet,{id:localList[i].id||String(Date.now())});
+          found = true; break;
         }
-        if(!found) list.unshift(Object.assign({}, projet, {id: Date.now().toString(), savedAt: new Date().toLocaleDateString("fr-FR")}));
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-        showToast("\u2713 Projet sauvegard\u00e9 !");
-        if(callback) callback();
-      }catch(e){}
+      }
+      if(!found) localList.unshift(Object.assign({},projet,{id:String(Date.now())}));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(localList));
+    }catch(le){ console.warn("localStorage save failed:", le); }
+
+    // 2. Sauvegarder dans Firebase si disponible
+    if(!isFirebaseAvailable()){
+      if(onDone) onDone();
       return;
     }
-
-    // Search if same nom+rev already exists
-    db.collection(COLLECTION_CQ)
-      .where("nom","==",S.projNom)
-      .where("rev","==",S.projRev)
-      .get().then(function(snap){
+    var fbProjet = Object.assign({}, projet, {
+      savedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    db.collection(COLLECTION_CHAUD)
+      .where("nom","==",projet.nom).where("rev","==",projet.rev)
+      .get()
+      .then(function(snap){
         if(!snap.empty){
-          // Update existing
-          var docId = snap.docs[0].id;
-          return db.collection(COLLECTION_CQ).doc(docId).set(projet);
+          return db.collection(COLLECTION_CHAUD).doc(snap.docs[0].id).set(fbProjet);
         } else {
-          // Create new
-          return db.collection(COLLECTION_CQ).add(projet);
+          return db.collection(COLLECTION_CHAUD).add(fbProjet);
         }
-      }).then(function(){
-        showToast("\u2713 Projet sauvegard\u00e9 !");
-        if(callback) callback();
-      }).catch(function(e){
-        console.error("Firebase save error:", e);
-        showToast("\u26a0 Erreur sauvegarde", "#ef4444");
+      })
+      .then(function(){
+        console.log("Firebase: projet sauvegarde OK");
+        if(onDone) onDone();
+      })
+      .catch(function(e){
+        console.error("Firebase save error:",e);
+        if(onDone) onDone();
       });
-  }catch(e){ console.error("saveCurrentProject error:",e); }
+  }catch(e){
+    console.error("saveCurrentProject error:",e);
+    if(onDone) onDone();
+  }
 }
-
 function deleteProject(id){
   if(!isFirebaseAvailable()){
     try{
@@ -798,13 +810,10 @@ function renderHistory(){
   var container = document.getElementById("historyList");
   var emptyMsg = document.getElementById("historyEmpty");
   if(!container) return;
-
-  // Show loading
-  container.innerHTML = "<div style=\"text-align:center;padding:20px;color:var(--text3);font-size:13px;\">\ud83d\udd04 Chargement des projets...</div>";
+  container.innerHTML = "<div style=\"text-align:center;padding:20px;color:var(--text3);font-size:13px;\">\ud83d\udd04 Chargement...</div>";
   if(emptyMsg) emptyMsg.style.display = "none";
-
   loadHistory(function(list){
-    list = list || [];
+    list = Array.isArray(list) ? list : [];
     container.innerHTML = "";
     if(list.length === 0){
       if(emptyMsg) emptyMsg.style.display = "block";
@@ -812,23 +821,24 @@ function renderHistory(){
     }
     if(emptyMsg) emptyMsg.style.display = "none";
     list.forEach(function(projet){
-      var savedDate = projet.savedAtStr || (projet.savedAt && projet.savedAt.toDate ? projet.savedAt.toDate().toLocaleDateString("fr-FR") : "—");
+      if(!projet) return;
+      var savedDate = projet.savedAtStr || "\u2014";
       var card = document.createElement("div");
       card.className = "history-card";
+      var nomSafe = String(projet.nom||"").replace(/'/g,"\\'");
       card.innerHTML =
-        "<div class=\"hc-body\" onclick=\"loadProjectAndGo('"+projet.id+"')\">"+
-        "<div class=\"hc-top\"><div class=\"hc-name\">"+projet.nom+"</div><div class=\"hc-rev\">"+projet.rev+"</div></div>"+
-        "<div class=\"hc-meta\"><span>\ud83d\udcc5 "+savedDate+"</span><span>\ud83d\udc64 "+projet.controle+"</span></div>"+
-        "<div class=\"hc-chips\">"+buildConfigChips(projet.config||{})+"</div>"+
-        "</div>"+
-        "<button class=\"hc-delete\" onclick=\"confirmDelete('"+projet.id+"','"+String(projet.nom).replace(/'/g,"\\'")+"')\" title=\"Supprimer\">"+
-        "<svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><polyline points=\"3 6 5 6 21 6\"/><path d=\"M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6\"/><path d=\"M10 11v6M14 11v6\"/><path d=\"M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2\"/></svg>"+
+        "<div class=\"hc-body\" onclick=\"loadProjectAndGo('"+projet.id+"')\">" +
+        "<div class=\"hc-top\"><div class=\"hc-name\">"+(projet.nom||"")+"</div><div class=\"hc-rev\">"+(projet.rev||"")+"</div></div>" +
+        "<div class=\"hc-meta\"><span>\ud83d\udcc5 "+savedDate+"</span><span>\ud83d\udc64 "+(projet.controle||"")+"</span></div>" +
+        "<div class=\"hc-chips\">"+buildConfigChips(projet.config||{})+"</div>" +
+        "</div>" +
+        "<button class=\"hc-delete\" onclick=\"confirmDelete('"+projet.id+"','"+nomSafe+"')\" title=\"Supprimer\">" +
+        "<svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><polyline points=\"3 6 5 6 21 6\"/><path d=\"M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6\"/><path d=\"M10 11v6M14 11v6\"/><path d=\"M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2\"/></svg>" +
         "</button>";
       container.appendChild(card);
     });
   });
 }
-
 function loadProjectAndGo(id){
   loadHistory(function(list){
     var projet = list.find(function(p){ return p.id === id; });
@@ -877,6 +887,13 @@ function saveCurrentProject(){
       localStorage.setItem(STORAGE_KEY, JSON.stringify(localList));
     }catch(le){ console.warn("localStorage save failed:", le); }
 
+    // Si pas Firebase, on rafraichit depuis localStorage directement
+    if(!isFirebaseAvailable()){
+      showToast("\u2713 Projet sauvegard\u00e9 !");
+      renderHistory();
+      return;
+    }
+
     // AUSSI sauvegarder dans Firebase si disponible
     if(isFirebaseAvailable()){
       var fbProjet = Object.assign({}, projet, {savedAt: firebase.firestore.FieldValue.serverTimestamp()});
@@ -890,12 +907,12 @@ function saveCurrentProject(){
           }
         }).then(function(){
           showToast("\u2713 Projet sauvegard\u00e9 !");
+          renderHistory();
         }).catch(function(e){
           console.error("Firebase save error:",e);
           showToast("\u2713 Sauvegard\u00e9 en local");
+          renderHistory();
         });
-    } else {
-      showToast("\u2713 Projet sauvegard\u00e9 !");
     }
   }catch(e){ console.error("saveCurrentProject error:",e); }
 }
@@ -1344,7 +1361,6 @@ function genererCQ(){
   S.projEdite=document.getElementById("projEdite").value||"\u2014";
   S.projControle=document.getElementById("projControle").value||"\u2014";
   S.projRev=document.getElementById("projRev").value||"\u2014";
-  saveCurrentProject();
   var cats=buildCategories();
   renderCQ(cats);
   showPage("page-cq");
@@ -1464,6 +1480,7 @@ function updateStats(){
   var syn=document.getElementById("synthese"), btnPdf=document.getElementById("btnPdf"), btnWa=document.getElementById("btnWa");
   if(done===total&&total>0){
     syn.classList.add("show"); btnPdf.classList.add("visible"); btnWa.classList.add("visible");
+    saveCurrentProject(function(){ showToast("\u2713 Projet sauvegard\u00e9 !", "#22c55e"); renderHistory(); });
     if(nc===0){ syn.className="synthese show all-ok"; document.getElementById("syntheseTitle").textContent="\ud83c\udf89 Contr\u00f4le valid\u00e9 \u2014 Qualit\u00e9 100% conforme !"; }
     else { syn.className="synthese show has-nc"; document.getElementById("syntheseTitle").textContent="\u26a0\ufe0f "+nc+" non-conformit\u00e9"+(nc>1?"s":"")+" d\u00e9tect\u00e9e"+(nc>1?"s":""); }
     var ncList=document.getElementById("ncList"), ncItemsEl=document.getElementById("ncItems");
@@ -1628,7 +1645,10 @@ function showPage(id){
   document.querySelectorAll(".page").forEach(function(p){ p.classList.remove("active"); });
   document.getElementById(id).classList.add("active");
   window.scrollTo({top:0,behavior:"smooth"});
-  if(id==="page-home") renderHistory();
+  if(id==="page-home"){
+    renderHistory();
+    setTimeout(function(){ if(document.getElementById("page-home").classList.contains("active")) renderHistory(); }, 2000);
+  }
 }
 function retourConfig(){ saveCurrentProject(); showPage("page-config"); document.getElementById("stepBadge").textContent="\u00c9tape 1/2"; }
 function retourAccueil(){ saveCurrentProject(); showPage("page-home"); document.getElementById("stepBadge").textContent="Accueil"; }
