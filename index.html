@@ -177,6 +177,8 @@ select.form-input option{background:var(--bg2);}
 .item-tag.droite{background:var(--green-dim);color:var(--green);}
 .item-tag.plafond{background:rgba(251,191,36,.15);color:#fbbf24;}
 .item-tag.alerte{background:rgba(239,68,68,.15);color:#f87171;font-weight:800;}
+.item-tag.elec{background:rgba(251,191,36,.15);color:#fbbf24;}
+.item-tag.csc{background:rgba(14,165,233,.15);color:#38bdf8;}
 .item-detail{font-size:11px;color:var(--text3);margin-top:3px;line-height:1.4;}
 .item-btns{display:flex;flex-direction:column;gap:6px;flex-shrink:0;}
 @media(max-width:440px){.item-top{flex-wrap:wrap;}.item-btns{flex-direction:row;width:100%;}.btn-cq{flex:1;justify-content:center;}}
@@ -375,7 +377,7 @@ select.form-input option{background:var(--bg2);}
       </div>
 
       <div class="sub-option" id="so-htbt">
-        <div><div class="sub-option-label">&#9889; R&#233;seau HT &amp; BT</div><div class="sub-option-sub">R&#233;alisation, &#233;tanch&#233;it&#233;, &#233;tiquettes identification</div></div>
+        <div><div class="sub-option-label">&#127777;&#65039; R&#233;seau eau glycol&#233;e HT &amp; BT</div><div class="sub-option-sub">R&#233;alisation, &#233;tanch&#233;it&#233;, &#233;tiquettes sens circulation</div></div>
         <div class="toggle-wrap"><div class="toggle small" id="tgl-htbt" data-key="htbt"></div><span class="toggle-label" id="lbl-htbt">NON</span></div>
       </div>
 
@@ -472,6 +474,66 @@ select.form-input option{background:var(--bg2);}
       <div class="sub-option" id="so-podGaine">
         <div><div class="sub-option-label">&#128260; Pods Gaine de rejet d&#8217;air</div><div class="sub-option-sub">Baffles, grilles pare-pluie, registres, t&#244;leries</div></div>
         <div class="toggle-wrap"><div class="toggle small" id="tgl-podGaine" data-key="podGaine"></div><span class="toggle-label" id="lbl-podGaine">NON</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ELECTRICITE -->
+  <div class="section-sep">&#9889; &#201;lectricit&#233;</div>
+  <div class="cat-block" id="cb-elec">
+    <div class="cat-block-header">
+      <div class="cat-block-icon">&#9889;</div>
+      <div class="cat-block-info">
+        <div class="cat-block-title">&#201;lectricit&#233;</div>
+        <div class="cat-block-sub">Tertiaire et puissance</div>
+      </div>
+      <div class="toggle-wrap">
+        <div class="toggle" id="tgl-elec" data-key="elec"></div>
+        <span class="toggle-label" id="lbl-elec">NON</span>
+      </div>
+    </div>
+    <div class="cat-block-body" id="body-elec">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">S&#233;lectionner les types d&#8217;&#233;lectricit&#233; &#224; contr&#244;ler :</div>
+
+      <div class="sub-option" id="so-elecTertiaire">
+        <div><div class="sub-option-label">&#128268; &#201;lectricit&#233; tertiaire</div><div class="sub-option-sub">Chemins de c&#226;bles, mise &#224; la terre, BAES, identifications</div></div>
+        <div class="toggle-wrap"><div class="toggle small" id="tgl-elecTertiaire" data-key="elecTertiaire"></div><span class="toggle-label" id="lbl-elecTertiaire">NON</span></div>
+      </div>
+      <div class="sub-sub" id="subsub-elecTertiaire">
+        <div class="sub-sub-row">
+          <span class="sub-sub-label">Projet en France (&#233;tiquetage c&#226;bles obligatoire) :</span>
+          <div class="toggle-wrap"><div class="toggle small" id="tgl-projetFrance" data-key="projetFrance"></div><span class="toggle-label" id="lbl-projetFrance">NON</span></div>
+        </div>
+        <div class="sub-sub-row">
+          <span class="sub-sub-label">Cablofil pr&#233;sent :</span>
+          <div class="toggle-wrap"><div class="toggle small" id="tgl-cablofil" data-key="cablofil"></div><span class="toggle-label" id="lbl-cablofil">NON</span></div>
+        </div>
+        <div class="sub-sub-row">
+          <span class="sub-sub-label">Couvercles sur chemins de c&#226;bles :</span>
+          <div class="toggle-wrap"><div class="toggle small" id="tgl-couvercles" data-key="couvercles"></div><span class="toggle-label" id="lbl-couvercles">NON</span></div>
+        </div>
+      </div>
+
+      <div class="sub-option" id="so-elecPuissance">
+        <div><div class="sub-option-label">&#128161; &#201;lectricit&#233; de puissance</div><div class="sub-option-sub">Supportage, couple de serrage, tra&#231;age, isolants</div></div>
+        <div class="toggle-wrap"><div class="toggle small" id="tgl-elecPuissance" data-key="elecPuissance"></div><span class="toggle-label" id="lbl-elecPuissance">NON</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CSC TRANSPORT MARITIME -->
+  <div class="section-sep">&#9875; Transport maritime (CSC)</div>
+  <div class="cat-block" id="cb-csc">
+    <div class="cat-block-header">
+      <div class="cat-block-icon">&#9875;</div>
+      <div class="cat-block-info">
+        <div class="cat-block-title">Certification CSC</div>
+        <div class="cat-block-sub">Transport maritime — conformité container</div>
+      </div>
+      <div class="toggle-wrap">
+        <div class="toggle" id="tgl-csc" data-key="csc"></div>
+        <span class="toggle-label" id="lbl-csc">NON</span>
       </div>
     </div>
   </div>
@@ -584,6 +646,11 @@ var S = {
   fuelReseau:false, uree:false, htbt:false, fumisterie:false,
   boitesRessort:false, rjFuel:false, rjUree:false, refroidisseur:false,
   registresGE:false, portesGE:false, nbPortes:0, inserts:false, doorFaces:{},
+  // ELEC
+  elec:false, elecTertiaire:false, elecPuissance:false,
+  projetFrance:false, cablofil:false, couvercles:false,
+  // CSC
+  csc:false,
   // CF
   cf:false,
   // PODS
@@ -626,7 +693,10 @@ function saveCurrentProject(){
 function buildConfigChips(c){
   var chips=[];
   if(c.ge) chips.push("<span class=\"hc-chip\">\u26a1 GE</span>");
+  if(c.elecTertiaire) chips.push("<span class=\"hc-chip\">\ud83d\udd0c Elec. tertiaire</span>");
+  if(c.elecPuissance) chips.push("<span class=\"hc-chip\">\u26a1 Elec. puissance</span>");
   if(c.cf) chips.push("<span class=\"hc-chip\">\ud83d\udd25 Coupe-feu</span>");
+  if(c.csc) chips.push("<span class=\"hc-chip\">\u26f3 CSC Maritime</span>");
   if(c.podEntree) chips.push("<span class=\"hc-chip\">\ud83c\udf00 Pod entr\u00e9e</span>");
   if(c.podRejet) chips.push("<span class=\"hc-chip\">\ud83d\udca8 Pod rejet</span>");
   if(c.podGaine) chips.push("<span class=\"hc-chip\">\ud83d\udd04 Pod gaine</span>");
@@ -672,7 +742,7 @@ function restoreUI(){
   document.getElementById("projControle").value=S.projControle||"";
   document.getElementById("projRev").value=S.projRev||"";
   // Restore all toggles
-  var toggleKeys=["ge","cf","pods","fuelReseau","uree","htbt","fumisterie","boitesRessort","rjFuel","rjUree","refroidisseur","registresGE","portesGE","inserts","podEntree","podRejet","podGaine"];
+  var toggleKeys=["ge","cf","pods","elec","csc","fuelReseau","uree","htbt","fumisterie","boitesRessort","rjFuel","rjUree","refroidisseur","registresGE","portesGE","inserts","podEntree","podRejet","podGaine","elecTertiaire","elecPuissance","projetFrance","cablofil","couvercles"];
   toggleKeys.forEach(function(key){
     var tgl=document.getElementById("tgl-"+key);
     var lbl=document.getElementById("lbl-"+key);
@@ -685,6 +755,9 @@ function restoreUI(){
   toggleBodyVisibility("pods","body-pods","cb-pods");
   toggleBodyVisibility("portesGE","subsub-portesGE",null);
   toggleBodyVisibility("cf",null,"cb-cf");
+  toggleBodyVisibility("elec","body-elec","cb-elec");
+  toggleBodyVisibility("elecTertiaire","subsub-elecTertiaire",null);
+  toggleBodyVisibility("csc",null,"cb-csc");
   // Restore stepper nbPortes
   var sv=document.querySelector("[data-key='nbPortes'] .stepper-val");
   if(sv){ sv.textContent=S.nbPortes||0; sv.classList.toggle("nonzero",(S.nbPortes||0)>0); }
@@ -709,6 +782,7 @@ var FACE_LIST = [
   {key:"GAUCHE", cls:"gauche"},
   {key:"DROITE", cls:"droite"}
 ];
+// doorFaces[i] = {face: "GAUCHE", cote: "AVANT"} or null
 
 function renderDoorFaces(){
   var container = document.getElementById("porte-faces-config");
@@ -718,26 +792,70 @@ function renderDoorFaces(){
   container.style.display="block";
   container.innerHTML = "";
   for(var i=1; i<=n; i++){
-    if(!S.doorFaces[i]) S.doorFaces[i] = null;
-    var item = document.createElement("div");
-    item.className = "porte-config-item";
-    var chips = FACE_LIST.map(function(f){
-      var sel = S.doorFaces[i] === f.key ? " selected" : "";
-      return "<span class=\"porte-face-chip "+f.cls+sel+"\" data-door=\""+i+"\" data-face=\""+f.key+"\">"+f.key+"</span>";
-    }).join("");
-    item.innerHTML = "<div class=\"porte-config-label\">Porte n\u00b0"+i+" \u2014 Face implant\u00e9e :</div><div class=\"porte-faces-row\">"+chips+"</div>";
-    container.appendChild(item);
+    if(!S.doorFaces[i] || typeof S.doorFaces[i] !== "object") S.doorFaces[i] = {face:null, cote:null};
+    (function(doorIdx){
+      var item = document.createElement("div");
+      item.className = "porte-config-item";
+      item.id = "porte-item-"+doorIdx;
+      var d = S.doorFaces[doorIdx];
+      if(!d.face){
+        // Show all 4 face chips
+        var chips = FACE_LIST.map(function(f){
+          return "<span class=\"porte-face-chip "+f.cls+"\" data-door=\""+doorIdx+"\" data-face=\""+f.key+"\">"+f.key+"</span>";
+        }).join("");
+        item.innerHTML = "<div class=\"porte-config-label\">Porte n\u00b0"+doorIdx+" \u2014 Face implant\u00e9e :</div><div class=\"porte-faces-row\">"+chips+"</div>";
+      } else if(d.face === "AVANT" || d.face === "ARRI\u00c8RE"){
+        // On a front/back face, no côté needed - just show selected face + reset link
+        var cls = d.face === "AVANT" ? "avant" : "arriere";
+        item.innerHTML = "<div class=\"porte-config-label\">Porte n\u00b0"+doorIdx+"</div>"+
+          "<div class=\"porte-faces-row\" style=\"margin-bottom:6px;\">"+
+          "<span class=\"porte-face-chip "+cls+" selected\" style=\"cursor:default;\">"+d.face+"</span>"+
+          "<span class=\"porte-face-chip\" style=\"background:var(--bg3);color:var(--text3);border-color:var(--border);font-size:10px;\" data-door=\""+doorIdx+"\" data-reset=\"1\">\u21a9 Changer</span>"+
+          "</div>";
+      } else {
+        // GAUCHE or DROITE: show côté AVANT / côté ARRIÈRE
+        var cls = d.face === "GAUCHE" ? "gauche" : "droite";
+        var coteAvantSel = d.cote === "AVANT" ? " selected" : "";
+        var coteArriereSel = d.cote === "ARRI\u00c8RE" ? " selected" : "";
+        item.innerHTML = "<div class=\"porte-config-label\">Porte n\u00b0"+doorIdx+"</div>"+
+          "<div class=\"porte-faces-row\" style=\"margin-bottom:6px;\">"+
+          "<span class=\"porte-face-chip "+cls+" selected\" style=\"cursor:default;\">"+d.face+"</span>"+
+          "<span class=\"porte-face-chip\" style=\"background:var(--bg3);color:var(--text3);border-color:var(--border);font-size:10px;\" data-door=\""+doorIdx+"\" data-reset=\"1\">\u21a9 Changer</span>"+
+          "</div>"+
+          "<div style=\"font-size:11px;color:var(--text2);margin-bottom:5px;\">Position sur la face :</div>"+
+          "<div class=\"porte-faces-row\">"+
+          "<span class=\"porte-face-chip avant"+coteAvantSel+"\" data-door=\""+doorIdx+"\" data-cote=\"AVANT\">\ud83d\udc49 C\u00f4t\u00e9 AVANT</span>"+
+          "<span class=\"porte-face-chip arriere"+coteArriereSel+"\" data-door=\""+doorIdx+"\" data-cote=\"ARRI\u00c8RE\">\ud83d\udc49 C\u00f4t\u00e9 ARRI\u00c8RE</span>"+
+          "</div>";
+      }
+      container.appendChild(item);
+      // Bind events
+      item.querySelectorAll("[data-face]").forEach(function(chip){
+        chip.addEventListener("click", function(){
+          var door = +this.dataset.door, face = this.dataset.face;
+          if(!S.doorFaces[door] || typeof S.doorFaces[door] !== "object") S.doorFaces[door] = {face:null,cote:null};
+          S.doorFaces[door].face = face;
+          S.doorFaces[door].cote = null;
+          renderDoorFaces();
+        });
+      });
+      item.querySelectorAll("[data-reset]").forEach(function(chip){
+        chip.addEventListener("click", function(){
+          var door = +this.dataset.door;
+          S.doorFaces[door] = {face:null, cote:null};
+          renderDoorFaces();
+        });
+      });
+      item.querySelectorAll("[data-cote]").forEach(function(chip){
+        chip.addEventListener("click", function(){
+          var door = +this.dataset.door, cote = this.dataset.cote;
+          if(!S.doorFaces[door] || typeof S.doorFaces[door] !== "object") S.doorFaces[door] = {face:null,cote:null};
+          S.doorFaces[door].cote = cote;
+          renderDoorFaces();
+        });
+      });
+    })(i);
   }
-  // Bind click events
-  container.querySelectorAll(".porte-face-chip").forEach(function(chip){
-    chip.addEventListener("click", function(){
-      var door = +this.dataset.door, face = this.dataset.face;
-      S.doorFaces[door] = face;
-      // Update UI: deselect others for same door
-      container.querySelectorAll("[data-door='"+door+"']").forEach(function(c){ c.classList.remove("selected"); });
-      this.classList.add("selected");
-    });
-  });
 }
 
 // ══════════════════════════════════════════
@@ -754,6 +872,9 @@ document.querySelectorAll(".toggle").forEach(function(t){
     // Side effects
     if(key==="ge"){ document.getElementById("body-ge").classList.toggle("show",S[key]); document.getElementById("cb-ge").classList.toggle("active",S[key]); }
     if(key==="cf"){ document.getElementById("cb-cf").classList.toggle("active",S[key]); }
+    if(key==="csc"){ document.getElementById("cb-csc").classList.toggle("active",S[key]); }
+    if(key==="elec"){ document.getElementById("body-elec").classList.toggle("show",S[key]); document.getElementById("cb-elec").classList.toggle("active",S[key]); }
+    if(key==="elecTertiaire"){ document.getElementById("subsub-elecTertiaire").classList.toggle("show",S[key]); }
     if(key==="pods"){ document.getElementById("body-pods").classList.toggle("show",S[key]); document.getElementById("cb-pods").classList.toggle("active",S[key]); }
     if(key==="portesGE"){ document.getElementById("subsub-portesGE").classList.toggle("show",S[key]); }
   });
@@ -794,7 +915,7 @@ function buildCategories(){
 
   // ── 3. RESEAU HT & BT
   if(S.ge && S.htbt){
-    cats.push({cat:"R\u00e9seau HT & BT",icon:"\u26a1",color:"#eab308",tag:"ge",rows:[
+    cats.push({cat:"R\u00e9seau eau glycol\u00e9e HT & BT",icon:"\ud83c\udf21\ufe0f",color:"#06b6d4",tag:"ge",rows:[
       {id:nid(),label:"R\u00e9seau HT & BT \u2014 R\u00e9alisation conforme et \u00e9tanche",tags:["ge"]},
       {id:nid(),label:"R\u00e9seau HT & BT \u2014 \u00c9tiquettes d\u2019identification pr\u00e9sentes sur tous les tuyaux",tags:["ge"],detail:"Chaque tuyau doit porter une \u00e9tiquette indiquant le sens de circulation du liquide"},
       {id:nid(),label:"R\u00e9seau HT & BT \u2014 Sens du liquide correctement indiqu\u00e9 sur les \u00e9tiquettes",tags:["ge"]},
@@ -854,9 +975,12 @@ function buildCategories(){
   if(S.ge && S.portesGE && S.nbPortes>0){
     var portesRows=[];
     for(var i=1;i<=S.nbPortes;i++){
-      var dFace = (S.doorFaces && S.doorFaces[i]) ? S.doorFaces[i] : null;
-      var faceTags = dFace ? ["ge", dFace.toLowerCase().replace("\u00c8","e").replace("\u00e8","e")] : ["ge"];
-      var faceLabel = dFace ? (" [Face "+dFace+"]") : "";
+      var dFaceObj = (S.doorFaces && S.doorFaces[i] && typeof S.doorFaces[i]==="object") ? S.doorFaces[i] : null;
+      var dFace = dFaceObj ? dFaceObj.face : null;
+      var dCote = dFaceObj ? dFaceObj.cote : null;
+      var faceTagKey = dFace ? dFace.toLowerCase().replace("\u00c8","e").replace("\u00e8","e").replace(" ","") : null;
+      var faceTags = dFace ? ["ge", faceTagKey] : ["ge"];
+      var faceLabel = dFace ? (" ["+dFace+(dCote?" - c\u00f4t\u00e9 "+dCote:"")+"]") : "";
       portesRows.push({id:nid(),label:"Porte n\u00b0"+i+faceLabel+" \u2014 10 cycles complets d\u2019ouverture et fermeture r\u00e9alis\u00e9s sans accroc",tags:faceTags,detail:"Tester 10 fois de suite : ouverture compl\u00e8te, puis fermeture compl\u00e8te"});
       portesRows.push({id:nid(),label:"Porte n\u00b0"+i+faceLabel+" \u2014 Serrure fonctionnelle : verrouillage et d\u00e9verrouillage conformes",tags:faceTags});
       portesRows.push({id:nid(),label:"Porte n\u00b0"+i+faceLabel+" \u2014 Alignement de la porte dans le cadre (pas de jeu excessif)",tags:faceTags});
@@ -897,6 +1021,70 @@ function buildCategories(){
   if(S.pods && S.podGaine) cats.push({cat:"Pod Gaine de rejet d\u2019air",icon:"\ud83d\udd04",color:"#8b5cf6",tag:"pod",rows:buildPodRows("Pod gaine de rejet d\u2019air","podGaine")});
 
   // ── 13. PEINTURE par face
+
+  // ── ELECTRICITE TERTIAIRE
+  if(S.elec && S.elecTertiaire){
+    var terRows = [
+      {id:nid(),label:"C\u00e2bles \u00e9lectriques \u2014 Align\u00e9s et maintenus par colliers sur toute la longueur",tags:["elec"]},
+      {id:nid(),label:"Chemins de c\u00e2bles \u2014 D\u00e9coupe droite r\u00e9alis\u00e9e avec pi\u00e8ces d\u2019angles conformes",tags:["elec"]},
+      {id:nid(),label:"D\u00e9coupes acier \u2014 \u00c9bavurage de chaque d\u00e9coupe r\u00e9alis\u00e9 et v\u00e9rifi\u00e9 (aucune ar\u00eate vive)",tags:["elec"],detail:"Passer la main sur chaque d\u00e9coupe pour d\u00e9tecter les ar\u00eates vives"},
+    ];
+    if(S.cablofil){
+      terRows.push({id:nid(),label:"Cablofil \u2014 Toutes les d\u00e9coupes r\u00e9alis\u00e9es uniquement au niveau des croisements perpendiculaires des fils",tags:["elec"],detail:"IMPORTANT : d\u00e9couper uniquement aux intersections des fils d\u2019acier pour \u00e9viter les bouts de fil saillants qui cr\u00e9ent un risque d\u2019accident"});
+    }
+    if(S.couvercles){
+      terRows.push({id:nid(),label:"Couvercles chemins de c\u00e2bles \u2014 Correctement mis en place sur l\u2019ensemble du parcours",tags:["elec"],detail:"V\u00e9rifier qu\u2019aucun couvercle ne soit manquant, d\u00e9form\u00e9 ou mal fix\u00e9"});
+    }
+    terRows.push(
+      {id:nid(),label:"R\u00e9sistance m\u00e9canique \u2014 Contr\u00f4le de la tenue de chaque c\u00e2ble (traction manuelle)",tags:["elec"],detail:"Tirer l\u00e9g\u00e8rement chaque c\u00e2ble pour v\u00e9rifier son maintien"},
+      {id:nid(),label:"Descentes verticales \u2014 Boutons ON/OFF et prises \u00e9lectriques : cheminement propre (chemin de c\u00e2ble ou tube IRO acier)",tags:["elec"],detail:"Chaque descente verticale doit \u00eatre r\u00e9alis\u00e9e soit par un chemin de c\u00e2ble, soit par un tube de type IRO en acier"},
+      {id:nid(),label:"Mise \u00e0 la terre \u2014 Chemins de c\u00e2bles reli\u00e9s \u00e0 la masse par tresse cuivre tous les 1,5 m",tags:["elec"],detail:"V\u00e9rifier la pr\u00e9sence et la connexion de chaque tresse cuivre tous les 1,5 m\u00e8tres"},
+      {id:nid(),label:"BAES \u2014 Pr\u00e9sence d\u2019un bloc de s\u00e9curit\u00e9 au-dessus de chaque porte",tags:["elec"],detail:"Un BAES doit \u00eatre implant\u00e9 et fonctionnel au-dessus de chaque porte sans exception"},
+      {id:nid(),label:"Implantation \u2014 Conforme au PID du projet (position de chaque \u00e9quipement v\u00e9rifi\u00e9e)",tags:["elec"]}
+    );
+    if(S.projetFrance){
+      terRows.push(
+        {id:nid(),label:"Identification c\u00e2bles (France) \u2014 Chaque c\u00e2ble \u00e9tiquet\u00e9 en d\u00e9but et fin de parcours",tags:["elec"],detail:"Exemples : \u00ab Alimentation \u00e9clairage 1 \u00bb, \u00ab Alimentation BAES 1 \u00bb, \u00ab Alimentation BAES 2 \u00bb..."},
+        {id:nid(),label:"Identification c\u00e2bles (France) \u2014 Libell\u00e9s des \u00e9tiquettes conformes aux sch\u00e9mas du projet",tags:["elec"]}
+      );
+    }
+    cats.push({cat:"\u00c9lectricit\u00e9 tertiaire",icon:"\ud83d\udd0c",color:"#fbbf24",rows:terRows});
+  }
+
+  // ── ELECTRICITE DE PUISSANCE
+  if(S.elec && S.elecPuissance){
+    cats.push({cat:"\u00c9lectricit\u00e9 de puissance",icon:"\u26a1",color:"#f97316",rows:[
+      {id:nid(),label:"Supportage c\u00e2bles de puissance \u2014 Fixations robustes et conformes sur toute la longueur",tags:["elec"],detail:"V\u00e9rifier la solidit\u00e9 de chaque support : aucun c\u00e2ble de puissance ne doit \u00eatre suspendu dans le vide"},
+      {id:nid(),label:"Couple de serrage \u2014 Chaque connexion entre g\u00e9n\u00e9ratrice et armoires/transfo marqu\u00e9e au feutre",tags:["elec"],detail:"Contr\u00f4ler le serrage au couple sp\u00e9cifi\u00e9 PUIS tracer un trait de marqueur sur le c\u00e2ble et la borne pour certifier le serrage"},
+      {id:nid(),label:"Tra\u00e7age des c\u00e2bles \u2014 Tressage conforme au PID pour annulation des champs magn\u00e9tiques",tags:["elec"],detail:"V\u00e9rifier que le sens et la m\u00e9thode de tressage des c\u00e2bles de puissance sont conformes aux sp\u00e9cifications du projet"},
+      {id:nid(),label:"Isolants c\u00e2bles \u2014 V\u00e9rification visuelle : aucun isolant endommag\u00e9, \u00e9cras\u00e9 ou d\u00e9grad\u00e9",tags:["elec"],detail:"Inspecter visuellement 100% de la longueur de chaque c\u00e2ble de puissance"},
+      {id:nid(),label:"Contr\u00f4le visuel global \u2014 Aspect g\u00e9n\u00e9ral du cheminement des c\u00e2bles de puissance conforme",tags:["elec"],detail:"Vision d\u2019ensemble : cheminement propre, ordonn\u00e9, sans c\u00e2ble \u00e0 nu"},
+      {id:nid(),label:"Implantation \u2014 Respect du PID du projet pour tous les c\u00e2bles de puissance",tags:["elec"],detail:"Comparer l\u2019implantation r\u00e9elle avec le PID : position, parcours et connexions conformes"},
+    ]});
+  }
+
+  // ── MISE A LA TERRE & IDENTIFICATION (toujours inclus)
+  cats.push({cat:"Mise \u00e0 la terre & Identification",icon:"\u26a1",color:"#eab308",rows:[
+    {id:nid(),label:"Mise \u00e0 la terre int\u00e9rieure \u2014 Continuité et conformité du r\u00e9seau de terre \u00e0 l\u2019int\u00e9rieur du container",tags:[],detail:"V\u00e9rifier chaque point de raccordement \u00e0 la masse : serrage, contact \u00e9lectrique et traçabilit\u00e9"},
+    {id:nid(),label:"Mise \u00e0 la terre ext\u00e9rieure \u2014 Point de terre ext\u00e9rieur conforme et accessible",tags:[],detail:"Contr\u00f4ler la barre ou borne de terre ext\u00e9rieure : accessibilit\u00e9, marquage et connexion m\u00e9canique robuste"},
+    {id:nid(),label:"Plaque d\u2019identification AIROPTA \u2014 Pr\u00e9sence, logo AIROPTA et r\u00e9f\u00e9rence sp\u00e9cifique du projet correcte",tags:[],detail:"V\u00e9rifier la pr\u00e9sence de la plaque, la lisibilit\u00e9 du logo AIROPTA et la conformit\u00e9 de la r\u00e9f\u00e9rence projet"},
+    {id:nid(),label:"Plaques d\u2019identification r\u00e9seaux \u2014 Chaque r\u00e9seau poss\u00e8de sa plaque d\u2019identification et elle est lisible",tags:[],detail:"Contr\u00f4ler la pr\u00e9sence d\u2019une plaque pour : fuel, ur\u00e9e, HT&BT, fumisterie, \u00e9lectricit\u00e9 et tout autre r\u00e9seau pr\u00e9sent"},
+  ]});
+
+  // ── CSC TRANSPORT MARITIME
+  if(S.csc){
+    cats.push({cat:"Certification CSC \u2014 Transport maritime",icon:"\ud83d\udea2",color:"#0ea5e9",rows:[
+      {id:nid(),label:"D\u00e9passements \u2014 Aucun \u00e9l\u00e9ment ne d\u00e9passe des coins ISO en toiture",tags:["csc"],detail:"Inspecter l\u2019ensemble de la toiture : aucune pi\u00e8ce, aucun c\u00e2ble, aucune vis ne doit d\u00e9passer le niveau des coins ISO"},
+      {id:nid(),label:"D\u00e9passements \u2014 Aucun \u00e9l\u00e9ment ne d\u00e9passe sur toutes les faces verticales",tags:["csc"],detail:"Inspecter les 4 faces verticales : aucun \u00e9l\u00e9ment saillant au-del\u00e0 du gabarit du container"},
+      {id:nid(),label:"Certificat APAVE \u2014 Pr\u00e9sence et validit\u00e9 du certificat confirm\u00e9es",tags:["csc"],detail:"V\u00e9rifier que le certificat APAVE est pr\u00e9sent, \u00e0 jour et attach\u00e9 au dossier du container"},
+      {id:nid(),label:"\u00c9tiquettes d\u2019identification CSC \u2014 Mises en place conform\u00e9ment aux exigences r\u00e9glementaires",tags:["csc"],detail:"Contr\u00f4ler la pr\u00e9sence, le positionnement et la lisibilit\u00e9 de toutes les \u00e9tiquettes obligatoires CSC"},
+      {id:nid(),label:"Plaque d\u2019identification porte \u2014 Mise en place conforme sur la porte du container",tags:["csc"],detail:"La plaque r\u00e9glementaire CSC doit \u00eatre fix\u00e9e sur la porte principale du container"},
+      {id:nid(),label:"Fermetures toiture \u2014 Chaque ouverture en toiture est ferm\u00e9e et verrouill\u00e9e",tags:["csc","plafond"],detail:"Inspecter chaque travers\u00e9e, trappe ou ouverture en toiture : ferm\u00e9e, \u00e9tanche, impossible \u00e0 ouvrir sans outil"},
+      {id:nid(),label:"Fermetures faces verticales \u2014 Toutes les ouvertures sur les 4 faces sont condamn\u00e9es pour le transport",tags:["csc"],detail:"V\u00e9rifier chevêtres, boites, grilles et tout passage sur chaque face verticale"},
+      {id:nid(),label:"Fermetures sol \u2014 Toutes les ouvertures en sol/plancher condamn\u00e9es",tags:["csc"],detail:"V\u00e9rifier les passages de tuyauteries et c\u00e2bles sous le plancher"},
+      {id:nid(),label:"Verrouillage portes \u2014 Toutes les portes verrouill\u00e9es avec un syst\u00e8me de fermeture tr\u00e8s r\u00e9sistant",tags:["csc"],detail:"Tester physiquement la r\u00e9sistance de chaque serrure et verrou : aucune ouverture possible sans cl\u00e9 ou outil d\u00e9di\u00e9"},
+    ]});
+  }
 
   // ── ETANCHEITE OUVERTURES (toujours inclus)
   cats.push({cat:"\u00c9tanch\u00e9it\u00e9 avant d\u00e9part",icon:"\ud83d\udca7",color:"#06b6d4",rows:[
@@ -1243,8 +1431,8 @@ function nouveauProjet(){
   // Reset all toggles
   document.querySelectorAll(".toggle").forEach(function(t){ t.classList.remove("on"); var lbl=document.getElementById("lbl-"+t.dataset.key); if(lbl){ lbl.textContent="NON"; lbl.classList.remove("on"); } });
   // Hide all bodies
-  ["body-ge","body-pods","subsub-portesGE"].forEach(function(id){ var el=document.getElementById(id); if(el) el.classList.remove("show"); });
-  ["cb-ge","cb-cf","cb-pods"].forEach(function(id){ var el=document.getElementById(id); if(el) el.classList.remove("active"); });
+  ["body-ge","body-pods","subsub-portesGE","body-elec","subsub-elecTertiaire"].forEach(function(id){ var el=document.getElementById(id); if(el) el.classList.remove("show"); });
+  ["cb-ge","cb-cf","cb-pods","cb-elec","cb-csc"].forEach(function(id){ var el=document.getElementById(id); if(el) el.classList.remove("active"); });
   // Reset stepper
   var sv=document.querySelector("[data-key='nbPortes'] .stepper-val"); if(sv){ sv.textContent="0"; sv.classList.remove("nonzero"); }
   S.doorFaces = {};
