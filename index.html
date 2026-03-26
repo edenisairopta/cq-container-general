@@ -701,17 +701,17 @@ function loadHistory(callback){
         snap.forEach(function(doc){ var d=doc.data(); d.id=doc.id; list.push(d); });
         // Trier par date desc
         list.sort(function(a,b){ return (b.savedAtStr||"").localeCompare(a.savedAtStr||""); });
-        if(callback) callback(list);
+        if(callback) callback(list||[]);
       })
       .catch(function(e){
         console.error("Firebase load error:",e);
         // Fallback localStorage
-        try{ var r=localStorage.getItem(STORAGE_KEY); if(callback) callback(r?JSON.parse(r):[]); }
+        try{ var r=localStorage.getItem(STORAGE_KEY); try{ if(callback) callback(r?JSON.parse(r):[]); }catch(pe){ if(callback) callback([]); } }
         catch(e2){ if(callback) callback([]); }
       });
   } else {
     // Fallback localStorage
-    try{ var r=localStorage.getItem(STORAGE_KEY); if(callback) callback(r?JSON.parse(r):[]); }
+    try{ var r=localStorage.getItem(STORAGE_KEY); try{ if(callback) callback(r?JSON.parse(r):[]); }catch(pe){ if(callback) callback([]); } }
     catch(e){ if(callback) callback([]); }
   }
 }
@@ -804,6 +804,7 @@ function renderHistory(){
   if(emptyMsg) emptyMsg.style.display = "none";
 
   loadHistory(function(list){
+    list = list || [];
     container.innerHTML = "";
     if(list.length === 0){
       if(emptyMsg) emptyMsg.style.display = "block";
