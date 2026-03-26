@@ -282,6 +282,29 @@ select.form-input option{background:var(--bg2);}
 .porte-face-chip.droite{background:var(--green-dim);color:var(--green);border-color:rgba(34,197,94,.25);}
 .porte-face-chip.droite.selected{background:var(--green);color:#fff;border-color:var(--green);}
 </style>
+
+  <!-- Firebase SDK - chargé en premier avant tout le reste -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script>
+    window.firebaseReady = false;
+    window.db = null;
+    try {
+      firebase.initializeApp({
+        apiKey: "AIzaSyAD9Ls3lcSNzxhzdIl3FOnOswIrizvG-UE",
+        authDomain: "airopta-cq-general.firebaseapp.com",
+        projectId: "airopta-cq-general",
+        storageBucket: "airopta-cq-general.firebasestorage.app",
+        messagingSenderId: "152508340985",
+        appId: "1:152508340985:web:fa785cf810cf505bc42028"
+      });
+      window.db = firebase.firestore();
+      window.firebaseReady = true;
+      console.log("Firebase chargé et prêt");
+    } catch(e) {
+      console.warn("Firebase non disponible, mode local:", e.message);
+    }
+  </script>
 </head>
 <body>
 
@@ -633,24 +656,6 @@ select.form-input option{background:var(--bg2);}
     </div>
   </div>
 </div>
-
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script>
-(function(){
-  try{
-    var cfg={apiKey:"AIzaSyAD9Ls3lcSNzxhzdIl3FOnOswIrizvG-UE",authDomain:"airopta-cq-general.firebaseapp.com",projectId:"airopta-cq-general",storageBucket:"airopta-cq-general.firebasestorage.app",messagingSenderId:"152508340985",appId:"1:152508340985:web:fa785cf810cf505bc42028"};
-    firebase.initializeApp(cfg);
-    window.db=firebase.firestore();
-    window.firebaseReady=true;
-    console.log("Firebase OK");
-  }catch(e){
-    console.warn("Firebase init failed:",e);
-    window.firebaseReady=false;
-    window.db=null;
-  }
-})();
-</script>
 <script>
 
 // ══════════════════════════════════════════
@@ -1605,7 +1610,15 @@ function nouveauProjet(){
 }
 
 // INIT
-renderHistory();
+// Init
+function initApp(){
+  renderHistory();
+}
+if(document.readyState === "loading"){
+  document.addEventListener("DOMContentLoaded", initApp);
+} else {
+  initApp();
+}
 
 </script>
 
