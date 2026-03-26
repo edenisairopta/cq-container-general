@@ -282,10 +282,6 @@ select.form-input option{background:var(--bg2);}
 .porte-face-chip.droite{background:var(--green-dim);color:var(--green);border-color:rgba(34,197,94,.25);}
 .porte-face-chip.droite.selected{background:var(--green);color:#fff;border-color:var(--green);}
 </style>
-
-  <!-- Firebase SDK - chargé en premier avant tout le reste -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <script>
     window.firebaseReady = false;
     window.db = null;
@@ -304,6 +300,47 @@ select.form-input option{background:var(--bg2);}
     } catch(e) {
       console.warn("Firebase non disponible, mode local:", e.message);
     }
+  </script>
+
+  <!-- ═══ FIREBASE ═══ -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script>
+    
+    
+    
+    try {
+      firebase.initializeApp({
+        apiKey:"AIzaSyAD9Ls3lcSNzxhzdIl3FOnOswIrizvG-UE",
+        authDomain:"airopta-cq-general.firebaseapp.com",
+        projectId:"airopta-cq-general",
+        storageBucket:"airopta-cq-general.firebasestorage.app",
+        messagingSenderId:"152508340985",
+        appId:"1:152508340985:web:fa785cf810cf505bc42028"
+      });
+      FBDB = firebase.firestore();
+      console.log("Firebase OK");
+    } catch(e){ console.warn("Firebase non dispo:", e.message); }
+  </script>
+
+  <script>
+    var FBDB = null;
+    var FBCOLL = "projets_cq_general";
+    var LSKEY = "airopta_cq_general_v1";
+    try {
+      if (typeof firebase !== "undefined") {
+        firebase.initializeApp({
+          apiKey:"AIzaSyAD9Ls3lcSNzxhzdIl3FOnOswIrizvG-UE",
+          authDomain:"airopta-cq-general.firebaseapp.com",
+          projectId:"airopta-cq-general",
+          storageBucket:"airopta-cq-general.firebasestorage.app",
+          messagingSenderId:"152508340985",
+          appId:"1:152508340985:web:fa785cf810cf505bc42028"
+        });
+        FBDB = firebase.firestore();
+        console.log("Firebase OK");
+      }
+    } catch(e) { console.warn("Firebase:", e.message); }
   </script>
 </head>
 <body>
@@ -661,6 +698,225 @@ select.form-input option{background:var(--bg2);}
 // ══════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════
+
+// ═══════════════════════════════════════════
+//  SYSTEME SAUVEGARDE - SIMPLE ET ROBUSTE
+// ═══════════════════════════════════════════
+
+function lsSave(list) {
+  try { localStorage.setItem(LSKEY, JSON.stringify(list)); } catch(e) {}
+}
+
+function lsLoad() {
+  try {
+    var r = localStorage.getItem(LSKEY);
+    var list = r ? JSON.parse(r) : [];
+    return Array.isArray(list) ? list : [];
+  } catch(e) { return []; }
+}
+
+function sauvegarderProjet(callback) {
+  if (!S.projNom) { if(callback) callback(); return; }
+  
+  var projet = {
+    id: String(Date.now()),
+    date: new Date().toLocaleDateString("fr-FR"),
+    nom: S.projNom, edite: S.projEdite,
+    controle: S.projControle, rev: S.projRev,
+    config: {}
+  };
+  try { Object.keys(S).forEach(function(k){ projet.config[k] = S[k]; }); } catch(e) {}
+
+  // 1. Sauvegarder en localStorage IMMEDIATEMENT
+  var list = lsLoad();
+  var idx = -1;
+  for (var i = 0; i < list.length; i++) {
+    if (list[i] && list[i].nom === projet.nom && list[i].rev === projet.rev) {
+      idx = i; break;
+    }
+  }
+  if (idx >= 0) {
+    projet.id = list[idx].id;
+    list[idx] = projet;
+  } else {
+    list.unshift(projet);
+  }
+  lsSave(list);
+  console.log("localStorage OK:", list.length, "projets");
+  
+  // 2. Callback TOUT DE SUITE (ne pas attendre Firebase)
+  if (callback) callback();
+
+  // 3. Firebase en arriere-plan
+  if (FBDB) {
+    try {
+      FBDB.collection(FBCOLL).add(Object.assign({}, projet, {ts: firebase.firestore.FieldValue.serverTimestamp()}))
+        .then(function(ref) {
+          console.log("Firebase OK:", ref.id);
+          // Supprimer les doublons Firebase du même projet
+          FBDB.collection(FBCOLL).where("nom","==",projet.nom).where("rev","==",projet.rev).get()
+            .then(function(snap) {
+              var ids = [];
+              snap.forEach(function(d) { ids.push(d.id); });
+              // Garder seulement le plus récent (le dernier ajouté)
+              ids.slice(0, ids.length-1).forEach(function(id) {
+                FBDB.collection(FBCOLL).doc(id).delete();
+              });
+            });
+        })
+        .catch(function(e) { console.warn("Firebase save err:", e.message); });
+    } catch(e) {}
+  }
+}
+
+function chargerProjets(callback) {
+  // D'abord charger depuis localStorage (immédiat)
+  var localList = lsLoad();
+  callback(localList);
+  
+  // Puis mettre à jour depuis Firebase en arrière-plan
+  if (FBDB) {
+    try {
+      FBDB.collection(FBCOLL).get()
+        .then(function(snap) {
+          var fbList = [];
+          snap.forEach(function(doc) {
+            var d = doc.data();
+            if (d) { d.id = doc.id; fbList.push(d); }
+          });
+          // Fusionner : prendre tous les projets Firebase + locaux uniques
+          var merged = fbList.slice();
+          var fbKeys = fbList.map(function(p) { return p.nom+"||"+p.rev; });
+          localList.forEach(function(lp) {
+            if (fbKeys.indexOf(lp.nom+"||"+lp.rev) < 0) merged.push(lp);
+          });
+          // Trier par date
+          merged.sort(function(a,b) { return String(b.date||"").localeCompare(String(a.date||"")); });
+          // Sauvegarder en local la version fusionnée
+          lsSave(merged);
+          // Mettre à jour l'affichage
+          afficherProjets(merged);
+        })
+        .catch(function(e) { console.warn("Firebase load err:", e.message); });
+    } catch(e) {}
+  }
+}
+
+function afficherProjets(list) {
+  var container = document.getElementById("historyList");
+  var empty = document.getElementById("historyEmpty");
+  if (!container) return;
+  list = Array.isArray(list) ? list : [];
+  container.innerHTML = "";
+  if (list.length === 0) {
+    if (empty) empty.style.display = "block";
+    return;
+  }
+  if (empty) empty.style.display = "none";
+  list.forEach(function(p) {
+    if (!p || !p.nom) return;
+    var card = document.createElement("div");
+    card.className = "history-card";
+    var nomSafe = String(p.nom).replace(/'/g, "\\'");
+    card.innerHTML =
+      "<div class=\"hc-body\" onclick=\"ouvrirProjet('" + p.id + "')\">" +
+      "<div class=\"hc-top\"><div class=\"hc-name\">" + p.nom + "</div>" +
+      "<div class=\"hc-rev\">" + (p.rev||"") + "</div></div>" +
+      "<div class=\"hc-meta\"><span>\ud83d\udcc5 " + (p.date||"") + "</span>" +
+      "<span>\ud83d\udc64 " + (p.controle||"") + "</span></div>" +
+      "<div class=\"hc-chips\">" + buildConfigChips(p.config||{}) + "</div>" +
+      "</div>" +
+      "<button class=\"hc-delete\" onclick=\"supprimerProjet('" + p.id + "','" + nomSafe + "')\">" +
+      "<svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\">" +
+      "<polyline points=\"3 6 5 6 21 6\"/><path d=\"M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6\"/>" +
+      "<path d=\"M10 11v6M14 11v6\"/><path d=\"M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2\"/></svg>" +
+      "</button>";
+    container.appendChild(card);
+  });
+}
+
+function renderHistory() {
+  var container = document.getElementById("historyList");
+  if (!container) return;
+  container.innerHTML = "<div style='text-align:center;padding:20px;color:var(--text3);font-size:13px;'>\ud83d\udd04 Chargement...</div>";
+  chargerProjets(function(list) {
+    afficherProjets(list);
+  });
+}
+
+function ouvrirProjet(id) {
+  var list = lsLoad();
+  var p = null;
+  for (var i = 0; i < list.length; i++) {
+    if (list[i] && list[i].id === id) { p = list[i]; break; }
+  }
+  if (!p) return;
+  var c = p.config || {};
+  Object.keys(c).forEach(function(k) { S[k] = c[k]; });
+  S.projNom = p.nom; S.projEdite = p.edite;
+  S.projControle = p.controle; S.projRev = p.rev;
+  restoreUI();
+  showPage("page-config");
+  document.getElementById("stepBadge").textContent = "\u00c9tape 1/2";
+}
+
+function supprimerProjet(id, nom) {
+  var modal = document.getElementById("modalDelete");
+  if (modal) {
+    var el = document.getElementById("deleteProjetNom");
+    if (el) el.textContent = nom;
+    modal.dataset.deleteId = id;
+    modal.classList.add("open");
+  }
+}
+
+function confirmDelete(id, nom) { supprimerProjet(id, nom); }
+
+function doDelete() {
+  var modal = document.getElementById("modalDelete");
+  if (!modal) return;
+  var id = modal.dataset.deleteId;
+  if (id) {
+    var list = lsLoad().filter(function(p) { return p && p.id !== id; });
+    lsSave(list);
+    if (FBDB) {
+      try { FBDB.collection(FBCOLL).doc(id).delete(); } catch(e) {}
+    }
+    renderHistory();
+  }
+  modal.classList.remove("open");
+}
+
+function cancelDelete() {
+  var modal = document.getElementById("modalDelete");
+  if (modal) modal.classList.remove("open");
+}
+
+// Alias pour compatibilité
+function loadProjectAndGo(id) { ouvrirProjet(id); }
+function saveCurrentProject(cb) { sauvegarderProjet(cb); }
+function deleteProject(id) {
+  var list = lsLoad().filter(function(p) { return p && p.id !== id; });
+  lsSave(list);
+  if (FBDB) { try { FBDB.collection(FBCOLL).doc(id).delete(); } catch(e) {} }
+  renderHistory();
+}
+
+function showToast(msg, color) {
+  var t = document.getElementById("toast-app");
+  if (!t) {
+    t = document.createElement("div");
+    t.id = "toast-app";
+    t.style.cssText = "position:fixed;bottom:90px;left:50%;transform:translateX(-50%);padding:10px 22px;border-radius:22px;font-family:Barlow,sans-serif;font-weight:700;font-size:14px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.4);opacity:0;transition:opacity .3s;pointer-events:none;color:#fff;white-space:nowrap;";
+    document.body.appendChild(t);
+  }
+  t.style.background = color || "#22c55e";
+  t.textContent = msg;
+  t.style.opacity = "1";
+  clearTimeout(t._t);
+  t._t = setTimeout(function() { t.style.opacity = "0"; }, 2500);
+}
+
 var S = {
   projNom:"", projEdite:"", projControle:"", projRev:"",
   // GE
@@ -679,7 +935,7 @@ var S = {
   pods:false, podEntree:false, podRejet:false, podGaine:false
 };
 var CQ = {};
-var STORAGE_KEY = "airopta_cq_general_v1";
+
 
 // ══════════════════════════════════════════
 //  HISTORY
@@ -688,180 +944,8 @@ var STORAGE_KEY = "airopta_cq_general_v1";
 // ══════════════════════════════════════════
 //  FIREBASE HISTORY (shared across all devices)
 // ══════════════════════════════════════════
-var COLLECTION_CQ = "projets_cq_general";
+
 function isFirebaseAvailable(){ return window.firebaseReady === true && window.db !== null; }
-
-function loadHistory(callback){
-  var safe = function(list){
-    if(typeof callback==="function") callback(Array.isArray(list)?list:[]);
-  };
-  if(!isFirebaseAvailable()){
-    try{
-      var raw=localStorage.getItem(STORAGE_KEY);
-      var list=raw?JSON.parse(raw):[];
-      safe(Array.isArray(list)?list:[]);
-    }catch(e){ safe([]); }
-    return;
-  }
-  // Pas de orderBy pour eviter le besoin d'index Firestore
-  db.collection(COLLECTION_CHAUD).limit(100).get()
-    .then(function(snap){
-      var list=[];
-      snap.forEach(function(doc){
-        var d=doc.data();
-        if(d){ d.id=doc.id; list.push(d); }
-      });
-      // Tri cote client par date decroissante
-      list.sort(function(a,b){
-        return String(b.savedAtStr||"").localeCompare(String(a.savedAtStr||""));
-      });
-      safe(list);
-    })
-    .catch(function(e){
-      console.error("Firebase load error:",e);
-      try{
-        var raw=localStorage.getItem(STORAGE_KEY);
-        var list=raw?JSON.parse(raw):[];
-        safe(Array.isArray(list)?list:[]);
-      }catch(e2){ safe([]); }
-    });
-}
-
-function saveCurrentProject(onDone){
-  try{
-    if(!S.projNom){ if(onDone) onDone(); return; }
-    var projet = {
-      id: null,
-      savedAtStr: new Date().toLocaleDateString("fr-FR"),
-      nom: S.projNom||"",
-      edite: S.projEdite||"",
-      controle: S.projControle||"",
-      rev: S.projRev||"",
-      config: {}
-    };
-    try{ Object.keys(S).forEach(function(k){ projet.config[k]=S[k]; }); }catch(ce){}
-
-    // ETAPE A : Sauvegarder en localStorage (synchrone, toujours disponible)
-    try{
-      var localList = [];
-      try{ localList = JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]"); }catch(pe){}
-      if(!Array.isArray(localList)) localList = [];
-      var found = false;
-      for(var i=0;i<localList.length;i++){
-        if(localList[i]&&localList[i].nom===projet.nom&&localList[i].rev===projet.rev){
-          projet.id = localList[i].id||String(Date.now());
-          localList[i] = projet;
-          found = true; break;
-        }
-      }
-      if(!found){
-        projet.id = String(Date.now());
-        localList.unshift(projet);
-      }
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(localList));
-      console.log("localStorage: sauvegarde OK, "+localList.length+" projets");
-    }catch(le){ console.error("localStorage save FAILED:", le); }
-
-    // ETAPE B : Mettre à jour l'affichage MAINTENANT depuis localStorage
-    if(onDone) onDone();
-
-    // ETAPE C : Aussi synchroniser avec Firebase en arrière-plan (sans bloquer)
-    if(isFirebaseAvailable()){
-      try{
-        var fbProjet = Object.assign({}, projet, {
-          savedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        db.collection(COLLECTION_CHAUD)
-          .where("nom","==",projet.nom).where("rev","==",projet.rev)
-          .get()
-          .then(function(snap){
-            if(!snap.empty){
-              return db.collection(COLLECTION_CHAUD).doc(snap.docs[0].id).set(fbProjet);
-            } else {
-              return db.collection(COLLECTION_CHAUD).add(fbProjet);
-            }
-          })
-          .then(function(){ console.log("Firebase: sync OK"); })
-          .catch(function(e){ console.warn("Firebase sync (non-bloquant):", e.message); });
-      }catch(fe){ console.warn("Firebase sync error:", fe.message); }
-    }
-  }catch(e){ console.error("saveCurrentProject ERROR:", e); if(onDone) onDone(); }
-}
-function saveHistory(list){
-  // Not used with Firebase — saves are done per-document
-}
-
-function deleteProject(id){
-  if(!isFirebaseAvailable()){
-    try{
-      var list = JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]").filter(function(p){ return p.id!==id; });
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-      renderHistory();
-    }catch(e){}
-    return;
-  }
-  db.collection(COLLECTION_CQ).doc(id).delete().then(function(){
-    renderHistory();
-  }).catch(function(e){
-    console.error("Firebase delete error:", e);
-  });
-}
-
-function renderHistory(){
-  var container = document.getElementById("historyList");
-  var emptyMsg = document.getElementById("historyEmpty");
-  if(!container) return;
-  container.innerHTML = "<div style=\"text-align:center;padding:20px;color:var(--text3);font-size:13px;\">\ud83d\udd04 Chargement...</div>";
-  if(emptyMsg) emptyMsg.style.display = "none";
-  loadHistory(function(list){
-    list = Array.isArray(list) ? list : [];
-    container.innerHTML = "";
-    if(list.length === 0){
-      if(emptyMsg) emptyMsg.style.display = "block";
-      return;
-    }
-    if(emptyMsg) emptyMsg.style.display = "none";
-    list.forEach(function(projet){
-      if(!projet) return;
-      var savedDate = projet.savedAtStr || "\u2014";
-      var card = document.createElement("div");
-      card.className = "history-card";
-      var nomSafe = String(projet.nom||"").replace(/'/g,"\\'");
-      card.innerHTML =
-        "<div class=\"hc-body\" onclick=\"loadProjectAndGo('"+projet.id+"')\">" +
-        "<div class=\"hc-top\"><div class=\"hc-name\">"+(projet.nom||"")+"</div><div class=\"hc-rev\">"+(projet.rev||"")+"</div></div>" +
-        "<div class=\"hc-meta\"><span>\ud83d\udcc5 "+savedDate+"</span><span>\ud83d\udc64 "+(projet.controle||"")+"</span></div>" +
-        "<div class=\"hc-chips\">"+buildConfigChips(projet.config||{})+"</div>" +
-        "</div>" +
-        "<button class=\"hc-delete\" onclick=\"confirmDelete('"+projet.id+"','"+nomSafe+"')\" title=\"Supprimer\">" +
-        "<svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><polyline points=\"3 6 5 6 21 6\"/><path d=\"M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6\"/><path d=\"M10 11v6M14 11v6\"/><path d=\"M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2\"/></svg>" +
-        "</button>";
-      container.appendChild(card);
-    });
-  });
-}
-function loadProjectAndGo(id){
-  loadHistory(function(list){
-    var projet = list.find(function(p){ return p.id === id; });
-    if(!projet) return;
-    var config = projet.config || {};
-    Object.keys(config).forEach(function(k){ S[k] = config[k]; });
-    restoreUI();
-    showPage("page-config");
-    document.getElementById("stepBadge").textContent = "\u00c9tape 1/2";
-  });
-}
-
-
-function showToast(msg, color){
-  var t=document.getElementById("toast-cqg");
-  if(!t){ t=document.createElement("div"); t.id="toast-cqg"; t.style.cssText="position:fixed;bottom:90px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:20px;font-family:Barlow,sans-serif;font-weight:700;font-size:14px;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.3);opacity:0;transition:opacity .3s;pointer-events:none;color:#fff;"; document.body.appendChild(t); }
-  t.style.background = color||"#22c55e";
-  t.textContent = msg;
-  t.style.opacity = "1";
-  clearTimeout(t._timer);
-  t._timer = setTimeout(function(){ t.style.opacity="0"; }, 2500);
-}
 
 function buildConfigChips(c){
   var chips=[];
@@ -875,16 +959,6 @@ function buildConfigChips(c){
   if(c.podGaine) chips.push("<span class=\"hc-chip\">\ud83d\udd04 Pod gaine</span>");
   if(chips.length===0) chips.push("<span class=\"hc-chip\" style=\"color:var(--text3)\">Config. de base</span>");
   return chips.join("");
-}
-
-function loadProjectAndGo(id){
-  var list=loadHistory();
-  var projet=list.find(function(p){ return p.id===id; });
-  if(!projet) return;
-  Object.keys(projet.config).forEach(function(k){ S[k]=projet.config[k]; });
-  restoreUI();
-  showPage("page-config");
-  document.getElementById("stepBadge").textContent="\u00c9tape 1/2";
 }
 
 function restoreUI(){
@@ -921,11 +995,6 @@ function toggleBodyVisibility(key, bodyId, blockId){
   if(bodyId){ var b=document.getElementById(bodyId); if(b){ b.classList.toggle("show",!!val); } }
   if(blockId){ var c=document.getElementById(blockId); if(c){ c.classList.toggle("active",!!val); } }
 }
-
-function confirmDelete(id,nom){ var m=document.getElementById("modalDelete"); document.getElementById("deleteProjetNom").textContent=nom; m.dataset.deleteId=id; m.classList.add("open"); }
-function doDelete(){ var m=document.getElementById("modalDelete"); var id=m.dataset.deleteId; if(id){ var list=loadHistory().filter(function(p){ return p.id!==id; }); saveHistory(list); renderHistory(); } m.classList.remove("open"); }
-function cancelDelete(){ document.getElementById("modalDelete").classList.remove("open"); }
-
 
 var FACE_LIST = [
   {key:"AVANT", cls:"avant"},
@@ -1403,6 +1472,7 @@ function updateStats(){
   var syn=document.getElementById("synthese"), btnPdf=document.getElementById("btnPdf"), btnWa=document.getElementById("btnWa");
   if(done===total&&total>0){
     syn.classList.add("show"); btnPdf.classList.add("visible"); btnWa.classList.add("visible");
+    sauvegarderProjet(function(){ showToast("\u2713 Projet sauvegard\u00e9 !"); renderHistory(); });
     saveCurrentProject(function(){ showToast("\u2713 Projet sauvegard\u00e9 !", "#22c55e"); renderHistory(); });
     if(nc===0){ syn.className="synthese show all-ok"; document.getElementById("syntheseTitle").textContent="\ud83c\udf89 Contr\u00f4le valid\u00e9 \u2014 Qualit\u00e9 100% conforme !"; }
     else { syn.className="synthese show has-nc"; document.getElementById("syntheseTitle").textContent="\u26a0\ufe0f "+nc+" non-conformit\u00e9"+(nc>1?"s":"")+" d\u00e9tect\u00e9e"+(nc>1?"s":""); }
