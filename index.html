@@ -692,38 +692,38 @@ var COLLECTION_CQ = "projets_cq_general";
 function isFirebaseAvailable(){ return window.firebaseReady === true && window.db !== null; }
 
 function loadHistory(callback){
-  var safeCallback = function(list){
-    if(typeof callback === "function") callback(Array.isArray(list) ? list : []);
+  var safe = function(list){
+    if(typeof callback==="function") callback(Array.isArray(list)?list:[]);
   };
   if(!isFirebaseAvailable()){
     try{
-      var raw = localStorage.getItem(STORAGE_KEY);
-      var list = raw ? JSON.parse(raw) : [];
-      if(!Array.isArray(list)) list = [];
-      safeCallback(list);
-    }catch(e){ safeCallback([]); }
+      var raw=localStorage.getItem(STORAGE_KEY);
+      var list=raw?JSON.parse(raw):[];
+      safe(Array.isArray(list)?list:[]);
+    }catch(e){ safe([]); }
     return;
   }
-  db.collection(COLLECTION_CHAUD)
-    .orderBy("savedAtStr","desc")
-    .limit(100)
-    .get()
+  // Pas de orderBy pour eviter le besoin d'index Firestore
+  db.collection(COLLECTION_CHAUD).limit(100).get()
     .then(function(snap){
-      var list = [];
+      var list=[];
       snap.forEach(function(doc){
-        var d = doc.data();
-        if(d){ d.id = doc.id; list.push(d); }
+        var d=doc.data();
+        if(d){ d.id=doc.id; list.push(d); }
       });
-      safeCallback(list);
+      // Tri cote client par date decroissante
+      list.sort(function(a,b){
+        return String(b.savedAtStr||"").localeCompare(String(a.savedAtStr||""));
+      });
+      safe(list);
     })
     .catch(function(e){
       console.error("Firebase load error:",e);
       try{
-        var raw = localStorage.getItem(STORAGE_KEY);
-        var list = raw ? JSON.parse(raw) : [];
-        if(!Array.isArray(list)) list = [];
-        safeCallback(list);
-      }catch(e2){ safeCallback([]); }
+        var raw=localStorage.getItem(STORAGE_KEY);
+        var list=raw?JSON.parse(raw):[];
+        safe(Array.isArray(list)?list:[]);
+      }catch(e2){ safe([]); }
     });
 }
 function saveHistory(list){
@@ -1357,6 +1357,7 @@ function buildCategories(){
 //  RENDER CQ
 // ══════════════════════════════════════════
 function genererCQ(){
+  window._savedThisSession = false;
   S.projNom=document.getElementById("projNom").value||"Projet sans nom";
   S.projEdite=document.getElementById("projEdite").value||"\u2014";
   S.projControle=document.getElementById("projControle").value||"\u2014";
@@ -1480,7 +1481,7 @@ function updateStats(){
   var syn=document.getElementById("synthese"), btnPdf=document.getElementById("btnPdf"), btnWa=document.getElementById("btnWa");
   if(done===total&&total>0){
     syn.classList.add("show"); btnPdf.classList.add("visible"); btnWa.classList.add("visible");
-    saveCurrentProject(function(){ showToast("\u2713 Projet sauvegard\u00e9 !", "#22c55e"); renderHistory(); });
+    if(!window._savedThisSession){ window._savedThisSession=true; saveCurrentProject(function(){ showToast("\u2713 Projet sauvegard\u00e9 !", "#22c55e"); renderHistory(); }); }
     if(nc===0){ syn.className="synthese show all-ok"; document.getElementById("syntheseTitle").textContent="\ud83c\udf89 Contr\u00f4le valid\u00e9 \u2014 Qualit\u00e9 100% conforme !"; }
     else { syn.className="synthese show has-nc"; document.getElementById("syntheseTitle").textContent="\u26a0\ufe0f "+nc+" non-conformit\u00e9"+(nc>1?"s":"")+" d\u00e9tect\u00e9e"+(nc>1?"s":""); }
     var ncList=document.getElementById("ncList"), ncItemsEl=document.getElementById("ncItems");
