@@ -692,21 +692,30 @@ var COLLECTION_CQ = "projets_cq_general";
 function isFirebaseAvailable(){ return window.firebaseReady === true && window.db !== null; }
 
 function loadHistory(callback){
-  if(!isFirebaseAvailable()){
-    try{ var r=localStorage.getItem(STORAGE_KEY); callback(r?JSON.parse(r):[]); }
-    catch(e){ callback([]); }
-    return;
+  // Essayer Firebase en premier, sinon localStorage
+  if(isFirebaseAvailable()){
+    var collName = typeof COLLECTION_CHAUD !== "undefined" ? COLLECTION_CHAUD : COLLECTION_CQ;
+    db.collection(collName).orderBy("savedAtStr","desc").limit(100).get()
+      .then(function(snap){
+        var list=[];
+        snap.forEach(function(doc){ var d=doc.data(); d.id=doc.id; list.push(d); });
+        // Trier par date desc
+        list.sort(function(a,b){ return (b.savedAtStr||"").localeCompare(a.savedAtStr||""); });
+        if(callback) callback(list);
+      })
+      .catch(function(e){
+        console.error("Firebase load error:",e);
+        // Fallback localStorage
+        try{ var r=localStorage.getItem(STORAGE_KEY); if(callback) callback(r?JSON.parse(r):[]); }
+        catch(e2){ if(callback) callback([]); }
+      });
+  } else {
+    // Fallback localStorage
+    try{ var r=localStorage.getItem(STORAGE_KEY); if(callback) callback(r?JSON.parse(r):[]); }
+    catch(e){ if(callback) callback([]); }
   }
-  db.collection(COLLECTION_CQ).orderBy("savedAt","desc").limit(50).get().then(function(snap){
-    var list = [];
-    snap.forEach(function(doc){ var d = doc.data(); d.id = doc.id; list.push(d); });
-    callback(list);
-  }).catch(function(e){
-    console.error("Firebase load error:", e);
-    try{ var r=localStorage.getItem(STORAGE_KEY); callback(r?JSON.parse(r):[]); }
-    catch(e2){ callback([]); }
-  });
 }
+
 
 function saveHistory(list){
   // Not used with Firebase — saves are done per-document
@@ -845,17 +854,51 @@ function showToast(msg, color){
 function saveCurrentProject(){
   try{
     if(!S.projNom) return;
-    var list = loadHistory();
     var config = {};
-    Object.keys(S).forEach(function(k){ config[k] = S[k]; });
-    var projet = { id: Date.now().toString(), savedAt: new Date().toLocaleDateString("fr-FR"), nom:S.projNom, edite:S.projEdite, controle:S.projControle, rev:S.projRev, config:config };
-    var found=false;
-    for(var i=0;i<list.length;i++){ if(list[i].nom===projet.nom&&list[i].rev===projet.rev){ projet.id=list[i].id; list[i]=projet; found=true; break; } }
-    if(!found) list.unshift(projet);
-    saveHistory(list);
-    showToast("\u2713 Projet sauvegard\u00e9 !");
-  }catch(e){ console.error("Save error:",e); }
+    Object.keys(S).forEach(function(k){ try{ config[k]=JSON.parse(JSON.stringify(S[k])); }catch(e){ config[k]=S[k]; } });
+    var projet = {
+      savedAtStr: new Date().toLocaleDateString("fr-FR"),
+      nom: S.projNom||"", edite: S.projEdite||"", controle: S.projControle||"", rev: S.projRev||"",
+      config: config
+    };
+
+    // TOUJOURS sauvegarder en localStorage (backup local)
+    try{
+      var localList = JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]");
+      var found=false;
+      for(var i=0;i<localList.length;i++){
+        if(localList[i].nom===projet.nom && localList[i].rev===projet.rev){
+          localList[i]=Object.assign({},projet,{id:localList[i].id||Date.now().toString()});
+          found=true; break;
+        }
+      }
+      if(!found) localList.unshift(Object.assign({},projet,{id:Date.now().toString()}));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(localList));
+    }catch(le){ console.warn("localStorage save failed:", le); }
+
+    // AUSSI sauvegarder dans Firebase si disponible
+    if(isFirebaseAvailable()){
+      var fbProjet = Object.assign({}, projet, {savedAt: firebase.firestore.FieldValue.serverTimestamp()});
+      db.collection(COLLECTION_CQ)
+        .where("nom","==",S.projNom).where("rev","==",S.projRev)
+        .get().then(function(snap){
+          if(!snap.empty){
+            return db.collection(COLLECTION_CQ).doc(snap.docs[0].id).set(fbProjet);
+          } else {
+            return db.collection(COLLECTION_CQ).add(fbProjet);
+          }
+        }).then(function(){
+          showToast("\u2713 Projet sauvegard\u00e9 !");
+        }).catch(function(e){
+          console.error("Firebase save error:",e);
+          showToast("\u2713 Sauvegard\u00e9 en local");
+        });
+    } else {
+      showToast("\u2713 Projet sauvegard\u00e9 !");
+    }
+  }catch(e){ console.error("saveCurrentProject error:",e); }
 }
+
 
 function buildConfigChips(c){
   var chips=[];
