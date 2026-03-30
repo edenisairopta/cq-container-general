@@ -257,6 +257,27 @@ select.form-input{cursor:pointer;}select.form-input option{background:var(--bg2)
 .porte-face-chip.droite{background:var(--green-dim);color:var(--green);border-color:rgba(34,197,94,.25);}
 .porte-face-chip.droite.selected{background:var(--green);color:#fff;border-color:var(--green);}
 
+
+.autres-section{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-top:12px;}
+.autres-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;color:var(--orange);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.autres-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+.autre-item{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius2);padding:10px 12px;}
+.autre-item-label{flex:1;font-size:13px;font-weight:600;color:var(--text);}
+.autre-btns{display:flex;gap:6px;flex-shrink:0;}
+.autre-btn-ok{padding:6px 12px;border-radius:var(--radius2);font-weight:700;font-size:11px;cursor:pointer;border:1.5px solid rgba(34,197,94,.3);background:var(--green-dim);color:var(--green);transition:all .15s;}
+.autre-btn-ok.sel{background:var(--green);color:#fff;border-color:var(--green);}
+.autre-btn-nc{padding:6px 12px;border-radius:var(--radius2);font-weight:700;font-size:11px;cursor:pointer;border:1.5px solid rgba(239,68,68,.3);background:var(--red-dim);color:var(--red);transition:all .15s;}
+.autre-btn-nc.sel{background:var(--red);color:#fff;border-color:var(--red);}
+.autre-del{width:28px;height:28px;background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius2);transition:all .15s;flex-shrink:0;}
+.autre-del:hover{background:var(--red-dim);color:var(--red);}
+.autre-add-row{display:flex;gap:8px;}
+.autre-input{flex:1;background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-family:'Barlow',sans-serif;font-size:13px;padding:9px 12px;border-radius:var(--radius2);outline:none;transition:border-color .2s;}
+.autre-input:focus{border-color:var(--orange);}
+.autre-add-btn{padding:9px 16px;background:var(--orange);color:#fff;border:none;border-radius:var(--radius2);font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap;transition:all .15s;}
+.autre-add-btn:active{transform:scale(.97);}
+.autre-nc-form{margin-top:6px;padding:8px 10px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:var(--radius2);display:none;}
+.autre-nc-form.show{display:block;}
+.autre-nc-input{width:100%;background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:'Barlow',sans-serif;font-size:12px;padding:7px 10px;border-radius:var(--radius2);outline:none;resize:vertical;min-height:50px;}
 </style>
 </head>
 <body>
@@ -349,8 +370,8 @@ select.form-input{cursor:pointer;}select.form-input option{background:var(--bg2)
   <div class="cat-block" id="cb-optAer">
     <div class="cat-block-header"><div class="cat-block-icon">&#127744;</div><div class="cat-block-info"><div class="cat-block-title">Options a&#233;rauliques &amp; filtration</div><div class="cat-block-sub">&#201;l&#233;ments pr&#233;sents sur ce projet</div></div><div class="toggle-wrap"><div class="toggle" id="tgl-optAer" data-key="optAer"></div><span class="toggle-label" id="lbl-optAer">NON</span></div></div>
     <div class="cat-block-body" id="body-optAer">
-      <div class="sub-option"><div><div class="sub-option-label">&#10060; PAS d&#8217;entr&#233;e d&#8217;air</div></div><div class="toggle-wrap"><div class="toggle small" id="tgl-pasPentreeAir" data-key="pasPentreeAir"></div><span class="toggle-label" id="lbl-pasPentreeAir">NON</span></div></div>
-      <div class="sub-option"><div><div class="sub-option-label">&#10060; PAS de rejet d&#8217;air</div></div><div class="toggle-wrap"><div class="toggle small" id="tgl-pasRejetAir" data-key="pasRejetAir"></div><span class="toggle-label" id="lbl-pasRejetAir">NON</span></div></div>
+      <div class="sub-option"><div><div class="sub-option-label">&#127908; Pi&#232;ge &#224; Son (PAS) entr&#233;e d&#8217;air</div></div><div class="toggle-wrap"><div class="toggle small" id="tgl-pasPentreeAir" data-key="pasPentreeAir"></div><span class="toggle-label" id="lbl-pasPentreeAir">NON</span></div></div>
+      <div class="sub-option"><div><div class="sub-option-label">&#127908; Pi&#232;ge &#224; Son (PAS) rejet d&#8217;air</div></div><div class="toggle-wrap"><div class="toggle small" id="tgl-pasRejetAir" data-key="pasRejetAir"></div><span class="toggle-label" id="lbl-pasRejetAir">NON</span></div></div>
       <div class="sub-option"><div><div class="sub-option-label">&#127744; Registre de dosage</div></div><div class="toggle-wrap"><div class="toggle small" id="tgl-registreDosage" data-key="registreDosage"></div><span class="toggle-label" id="lbl-registreDosage">NON</span></div></div>
       <div class="sub-option"><div><div class="sub-option-label">&#9928;&#65039; Grille pare-pluie</div></div><div class="toggle-wrap"><div class="toggle small" id="tgl-grillePP" data-key="grillePP"></div><span class="toggle-label" id="lbl-grillePP">NON</span></div></div>
       <div class="sub-sub" id="subsub-grillePP">
@@ -495,7 +516,7 @@ function sauvegarderProjet(callback) {
 }
 
 function chargerProjets(callback) {
-  // D'abord charger depuis localStorage (immédiat)
+  // Charger depuis localStorage (immédiat)
   var localList = lsLoad();
   callback(localList);
   
@@ -519,7 +540,7 @@ function chargerProjets(callback) {
           merged.sort(function(a,b) { return String(b.date||"").localeCompare(String(a.date||"")); });
           // Sauvegarder en local la version fusionnée
           lsSave(merged);
-          // Mettre à jour l'affichage
+          // Rafraichir affichage
           afficherProjets(merged);
         })
         .catch(function(e) { console.warn("Firebase load err:", e.message); });
@@ -659,6 +680,8 @@ var S = {
   bacControles:false, bacBouchon:false, bacRobinet:false
 };
 var CQ = {};
+var AUTRES = [];
+
 
 // ─── DOOR FACES ───
 var FACE_LIST = [
@@ -835,8 +858,8 @@ function buildCategories(){
   ]});
   if(S.optAer){
     var aerRows=[];
-    if(S.pasPentreeAir) aerRows.push({id:nid(),label:"Absence d\u2019entr\u00e9e d\u2019air confirm\u00e9e",tags:["aer"]});
-    if(S.pasRejetAir) aerRows.push({id:nid(),label:"Absence de rejet d\u2019air confirm\u00e9e",tags:["aer"]});
+    if(S.pasPentreeAir) aerRows.push({id:nid(),label:"Pi\u00e8ge \u00e0 Son (PAS) entr\u00e9e d\u2019air \u2014 R\u00e9alisation et fonctionnement conformes",tags:["aer"],detail:"V\u00e9rifier la mise en place, l\u2019alignement et l\u2019\u00e9tanch\u00e9it\u00e9 du PAS entr\u00e9e d\u2019air"});
+    if(S.pasRejetAir) aerRows.push({id:nid(),label:"Pi\u00e8ge \u00e0 Son (PAS) rejet d\u2019air \u2014 R\u00e9alisation et fonctionnement conformes",tags:["aer"],detail:"V\u00e9rifier la mise en place, l\u2019alignement et l\u2019\u00e9tanch\u00e9it\u00e9 du PAS rejet d\u2019air"});
     if(S.registreDosage) aerRows.push({id:nid(),label:"Registre de dosage \u2014 Implantation et fonctionnement conform\u00e9s",tags:["aer"]});
     if(S.grillePP){
       aerRows.push({id:nid(),label:"Grille pare-pluie \u2014 Fixation correcte",tags:["aer"]});
@@ -967,6 +990,86 @@ function renderCQ(cats){
     cont.appendChild(div);
   });
   bindItemEvents();
+  // Afficher section Autres
+  renderAutres();
+}
+
+function renderAutres(){
+  var existing = document.getElementById("autres-section");
+  if(existing) existing.remove();
+  var cont = document.getElementById("cqContent");
+  if(!cont) return;
+
+  var section = document.createElement("div");
+  section.className = "autres-section";
+  section.id = "autres-section";
+
+  var listHtml = "";
+  AUTRES.forEach(function(item, idx){
+    var okSel = item.status==="ok" ? " sel" : "";
+    var ncSel = item.status==="nc" ? " sel" : "";
+    var ncShow = item.status==="nc" ? " show" : "";
+    var descSafe = (item.desc||"").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    listHtml +=
+      "<div class=\"autre-item\" id=\"autre-item-" + idx + "\" style=\"flex-wrap:wrap;\">" +
+      "<span class=\"autre-item-label\">" + item.label + "</span>" +
+      "<div class=\"autre-btns\">" +
+      "<button class=\"autre-btn-ok" + okSel + "\" onclick=\"setAutreStatus(" + idx + ",0)\">&#10003; OK</button>" +
+      "<button class=\"autre-btn-nc" + ncSel + "\" onclick=\"setAutreStatus(" + idx + ",1)\">&#10007; NC</button>" +
+      "<button class=\"autre-del\" onclick=\"removeAutre(" + idx + ")\" title=\"Supprimer\">&#215;</button>" +
+      "</div>" +
+      "<div class=\"autre-nc-form" + ncShow + "\" id=\"autre-ncf-" + idx + "\">" +
+      "<textarea class=\"autre-nc-input\" placeholder=\"Commentaire...\" onchange=\"AUTRES[" + idx + "].desc=this.value\">" + descSafe + "</textarea>" +
+      "</div>" +
+      "</div>";
+  });
+
+  section.innerHTML =
+    "<div class=\"autres-title\">&#10133; Autres points &#224; contr&#244;ler</div>" +
+    "<div class=\"autres-list\" id=\"autres-list\">" + listHtml + "</div>" +
+    "<div class=\"autre-add-row\">" +
+    "<input class=\"autre-input\" id=\"autre-new-input\" type=\"text\" placeholder=\"D&#233;crire un point suppl&#233;mentaire...\">" +
+    "<button class=\"autre-add-btn\" onclick=\"ajouterAutre()\">&#43; Ajouter</button>" +
+    "</div>";
+  cont.appendChild(section);
+  updateStats();
+}
+
+function ajouterAutre(){
+  var input = document.getElementById("autre-new-input");
+  if(!input) return;
+  var label = input.value.trim();
+  if(!label) return;
+  AUTRES.push({label:label, status:null, desc:""});
+  input.value = "";
+  renderAutres();
+  updateStats();
+}
+
+function removeAutre(idx){
+  AUTRES.splice(idx, 1);
+  renderAutres();
+  updateStats();
+}
+
+function setAutreStatus(idx, val){
+  var status = val === 0 ? "ok" : "nc";
+  if(AUTRES[idx].status === status){
+    AUTRES[idx].status = null;
+  } else {
+    AUTRES[idx].status = status;
+  }
+  renderAutres();
+  updateStats();
+}
+
+function countAutres(){
+  var ok=0, nc=0, done=0;
+  AUTRES.forEach(function(a){
+    if(a.status==="ok"){ok++;done++;}
+    else if(a.status==="nc"){nc++;done++;}
+  });
+  return {ok:ok, nc:nc, done:done, total:AUTRES.length};
 }
 
 function bindItemEvents(){
@@ -1018,7 +1121,9 @@ function updateCatProgress(){
 }
 
 function updateStats(){
-  var ok=0,nc=0,done=0,total=Object.keys(CQ).length;
+  var cqOk=0,cqNc=0,cqDone=0; Object.values(CQ).forEach(function(v){if(v.status==="ok"){cqOk++;cqDone++;} else if(v.status==="nc"){cqNc++;cqDone++;}});
+  var aStats=countAutres?countAutres():{ok:0,nc:0,done:0,total:0};
+  var ok=cqOk+aStats.ok, nc=cqNc+aStats.nc, done=cqDone+aStats.done, total=Object.keys(CQ).length+aStats.total;
   Object.values(CQ).forEach(function(v){if(v.status==="ok"){ok++;done++;} else if(v.status==="nc"){nc++;done++;}});
   var pct=done>0?Math.round(ok/done*100):0;
   document.getElementById("statOK").textContent=ok;
@@ -1064,6 +1169,7 @@ function buildSummaryText(){
   var pct=total>0?Math.round(ok/total*100):0;
   var lines=["AIROPTA - Controle Qualite General Container","","Projet : "+S.projNom,"Revision : "+S.projRev,"Controle par : "+S.projControle,"Edite par : "+S.projEdite,"","Resultat : "+ok+"/"+total+" conformes ("+pct+"%)",nc===0?"CONFORME":"ATTENTION - "+nc+" NC"];
   if(nc>0){ lines.push("","--- Non-conformites ---"); Object.entries(CQ).forEach(function(e2){var id=e2[0],v=e2[1]; if(v.status==="nc"){var el=document.getElementById("item-"+id); var lbl=el?el.querySelector(".item-label").textContent:id; var typeLabel=v.ncType==="nonrealise"?"Non realise":v.ncType==="partiel"?"Partiel ("+v.pct+"%)":v.ncType==="malrealise"?"Mal realise":"NC"; lines.push("- ["+typeLabel+"] "+lbl); if(v.expl) lines.push("  Probleme : "+v.expl); if(v.desc) lines.push("  Commentaire : "+v.desc);}}); }
+    AUTRES.forEach(function(a){ if(a.status==="nc"){ lines.push("- [Autre] "+a.label); if(a.desc) lines.push("  Commentaire : "+a.desc); } });
   return lines.join("\n");
 }
 
@@ -1181,6 +1287,7 @@ function buildConfigChips(c){
 }
 
 function genererCQ(){
+  AUTRES = [];
   S.projNom=document.getElementById("projNom").value||"Projet sans nom";
   S.projEdite=document.getElementById("projEdite").value||"\u2014";
   S.projControle=document.getElementById("projControle").value||"\u2014";
