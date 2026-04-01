@@ -1142,15 +1142,23 @@ function updateCatProgress(){
 }
 
 function updateStats(){
-  var cqOk=0,cqNc=0,cqDone=0; Object.values(CQ).forEach(function(v){if(v.status==="ok"){cqOk++;cqDone++;} else if(v.status==="nc"){cqNc++;cqDone++;}});
+  // Comptage CQ
+  var cqOk=0,cqNc=0,cqDone=0;
+  Object.values(CQ).forEach(function(v){
+    if(v.status==="ok"){cqOk++;cqDone++;}
+    else if(v.status==="nc"){cqNc++;cqDone++;}
+  });
   var aStats=countAutres?countAutres():{ok:0,nc:0,done:0,total:0};
-  var ok=cqOk+aStats.ok, nc=cqNc+aStats.nc, done=cqDone+aStats.done, total=Object.keys(CQ).length+aStats.total;
-  Object.values(CQ).forEach(function(v){if(v.status==="ok"){ok++;done++;} else if(v.status==="nc"){nc++;done++;}});
-  var pct=done>0?Math.round(ok/done*100):0;
+  var ok=cqOk+aStats.ok;
+  var nc=cqNc+aStats.nc;
+  var done=cqDone+aStats.done;
+  var total=Object.keys(CQ).length+aStats.total;
+  var pct=total>0?Math.round(ok/total*100):0;
   document.getElementById("statOK").textContent=ok;
   document.getElementById("statNC").textContent=nc;
   document.getElementById("statPCT").textContent=pct;
   document.getElementById("statDone").textContent=done;
+  document.getElementById("statTotal").textContent=total;
   document.getElementById("progressFill").style.width=(total>0?done/total*100:0)+"%";
   document.getElementById("sOK").textContent=ok;
   document.getElementById("sNC").textContent=nc;
