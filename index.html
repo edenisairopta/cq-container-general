@@ -1163,8 +1163,11 @@ function updateStats(){
   document.getElementById("sOK").textContent=ok;
   document.getElementById("sNC").textContent=nc;
   document.getElementById("sPCT").textContent=pct+"%";
+  // La complétion CQ seule déclenche le PDF (les "Autres" ne bloquent pas)
+  var cqTotal=Object.keys(CQ).length;
+  var cqDoneCount=cqOk+cqNc;
   var syn=document.getElementById("synthese"), btnPdf=document.getElementById("btnPdf");
-  if(done===total&&total>0){
+  if(cqDoneCount===cqTotal&&cqTotal>0){
     syn.classList.add("show"); btnPdf.classList.add("visible");
     if(nc===0){syn.className="synthese show all-ok"; document.getElementById("syntheseTitle").textContent="\ud83c\udf89 Contr\u00f4le valid\u00e9 \u2014 Qualit\u00e9 100% conforme !";}
     else{syn.className="synthese show has-nc"; document.getElementById("syntheseTitle").textContent="\u26a0\ufe0f "+nc+" non-conformit\u00e9"+(nc>1?"s":"")+" d\u00e9tect\u00e9e"+(nc>1?"s":"");}
@@ -1185,7 +1188,8 @@ function updateStats(){
     // SAUVEGARDE AUTOMATIQUE quand checklist complete
     sauvegarderProjet(function(){ showToast("\u2713 Projet sauvegard\u00e9 !"); renderHistory(); });
     syn.scrollIntoView({behavior:"smooth",block:"nearest"});
-  } else {
+  } else if(cqTotal>0) {
+    // Masquer seulement si CQ non terminée (pas à cause des Autres)
     syn.classList.remove("show"); syn.className="synthese";
     btnPdf.classList.remove("visible");
   }
