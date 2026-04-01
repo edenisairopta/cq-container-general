@@ -464,12 +464,33 @@ function lsLoad() {
 function sauvegarderProjet(callback) {
   if (!S.projNom) { if(callback) callback(); return; }
   
+  // Sauvegarder aussi les statuts CQ (sans les photos base64 pour limiter la taille)
+  var cqData = {};
+  try {
+    Object.keys(CQ).forEach(function(id) {
+      var v = CQ[id];
+      cqData[id] = { status: v.status, desc: v.desc, ncType: v.ncType, pct: v.pct, expl: v.expl };
+    });
+  } catch(e) {}
+
+  // Sauvegarder aussi les points Autres
+  var autresData = [];
+  try {
+    if(typeof AUTRES !== "undefined") {
+      AUTRES.forEach(function(a) {
+        autresData.push({ label: a.label, status: a.status, desc: a.desc });
+      });
+    }
+  } catch(e) {}
+
   var projet = {
     id: String(Date.now()),
     date: new Date().toLocaleDateString("fr-FR"),
     nom: S.projNom, edite: S.projEdite,
     controle: S.projControle, rev: S.projRev,
-    config: {}
+    config: {},
+    cqData: cqData,
+    autresData: autresData
   };
   try { Object.keys(S).forEach(function(k){ projet.config[k] = S[k]; }); } catch(e) {}
 
@@ -1289,13 +1310,87 @@ function buildConfigChips(c){
 function genererCQ(){
   AUTRES = [];
   S.projNom=document.getElementById("projNom").value||"Projet sans nom";
-  S.projEdite=document.getElementById("projEdite").value||"\u2014";
-  S.projControle=document.getElementById("projControle").value||"\u2014";
-  S.projRev=document.getElementById("projRev").value||"\u2014";
+  S.projEdite=document.getElementById("projEdite").value||"—";
+  S.projControle=document.getElementById("projControle").value||"—";
+  S.projRev=document.getElementById("projRev").value||"—";
   var cats=buildCategories();
   renderCQ(cats);
+  // Restaurer les statuts sauvegardés si projet existant
+  restaurerCQ();
   showPage("page-cq");
-  document.getElementById("stepBadge").textContent="\u00c9tape 2/2";
+  document.getElementById("stepBadge").textContent="Étape 2/2";
+}
+
+function restaurerCQ() {
+  try {
+    var list = lsLoad();
+    var p = null;
+    for(var i=0; i<list.length; i++) {
+      if(list[i] && list[i].nom===S.projNom && list[i].rev===S.projRev) { p=list[i]; break; }
+    }
+    if(!p || !p.cqData) return;
+    var saved = p.cqData;
+
+    // Restaurer CQ par ID direct
+    var anyRestored = false;
+    Object.keys(saved).forEach(function(savedId) {
+      if(!CQ[savedId] || !saved[savedId].status) return;
+      var v = saved[savedId];
+      CQ[savedId].status = v.status;
+      CQ[savedId].desc = v.desc||"";
+      CQ[savedId].ncType = v.ncType||"";
+      CQ[savedId].pct = v.pct||"";
+      CQ[savedId].expl = v.expl||"";
+      anyRestored = true;
+
+      // Mettre à jour le DOM
+      var item = document.getElementById("item-"+savedId);
+      if(!item) return;
+      item.className = "cq-item item-"+v.status;
+      var btnOk = item.querySelector(".btn-ok");
+      var btnNc = item.querySelector(".btn-nc");
+      if(btnOk) btnOk.classList.toggle("selected", v.status==="ok");
+      if(btnNc) btnNc.classList.toggle("selected", v.status==="nc");
+
+      if(v.status==="nc") {
+        var ncf = document.getElementById("ncf-"+savedId);
+        if(ncf) {
+          ncf.classList.add("show");
+          var sel = document.getElementById("nct-"+savedId);
+          if(sel && v.ncType) { sel.value=v.ncType; updateNcType(savedId); }
+          var pctInp = document.getElementById("ncpctv-"+savedId);
+          if(pctInp && v.pct) pctInp.value = v.pct;
+          var explInp = document.getElementById("ncexpl-"+savedId);
+          if(explInp && v.expl) explInp.value = v.expl;
+          var ta = ncf.querySelector(".nc-textarea");
+          if(ta && v.desc) ta.value = v.desc;
+        }
+      }
+    });
+
+    // Restaurer les Autres points
+    if(p.autresData && p.autresData.length > 0) {
+      AUTRES = p.autresData.map(function(a){
+        return { label:a.label, status:a.status||null, desc:a.desc||"" };
+      });
+    }
+
+    if(anyRestored) {
+      updateCatProgress();
+      updateStats();
+      // Si 100% — afficher la synthèse et le bouton PDF directement
+      var total = Object.keys(CQ).length + AUTRES.length;
+      var done = 0;
+      Object.values(CQ).forEach(function(v){ if(v.status) done++; });
+      AUTRES.forEach(function(a){ if(a.status) done++; });
+      if(done===total && total>0) {
+        var syn = document.getElementById("synthese");
+        var btn = document.getElementById("btnPdf");
+        if(syn) syn.classList.add("show");
+        if(btn) btn.classList.add("visible");
+      }
+    }
+  } catch(e){ console.warn("restaurerCQ:", e); }
 }
 
 function restoreUI(){
