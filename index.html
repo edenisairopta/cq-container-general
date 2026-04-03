@@ -1187,7 +1187,6 @@ function updateStats(){
     } else { ncListEl.style.display="none"; }
     // SAUVEGARDE AUTOMATIQUE quand checklist complete
     sauvegarderProjet(function(){ showToast("\u2713 Projet sauvegard\u00e9 !"); renderHistory(); });
-    syn.scrollIntoView({behavior:"smooth",block:"nearest"});
   } else if(cqTotal>0) {
     // Masquer seulement si CQ non terminée (pas à cause des Autres)
     syn.classList.remove("show"); syn.className="synthese";
@@ -1273,7 +1272,7 @@ function exportPdf(){
       });
       doc.setTextColor(140,140,160); doc.setFont("helvetica","normal"); doc.setFontSize(8);
       doc.text("AIROPTA \u2014 "+new Date().toLocaleDateString("fr-FR"),margin,292);
-      var fn="CQ_GENERAL_"+S.projNom.replace(/[^a-zA-Z0-9]/g,"_")+"_"+S.projRev.replace(/\s/g,"")+".pdf";
+      var _now=new Date(); var _pad=function(n){return n<10?"0"+n:n;}; var _datePart=_now.getFullYear()+"-"+_pad(_now.getMonth()+1)+"-"+_pad(_now.getDate()); var _timePart=_pad(_now.getHours())+"h"+_pad(_now.getMinutes()); var fn="CQ_GENERAL_"+S.projNom.replace(/[^a-zA-Z0-9]/g,"_")+"_"+S.projRev.replace(/\s/g,"")+"_"+_datePart+"_"+_timePart+".pdf";
       var blob=doc.output("blob"), url=URL.createObjectURL(blob);
       var a=document.createElement("a"); a.href=url; a.download=fn; a.style.display="none";
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
